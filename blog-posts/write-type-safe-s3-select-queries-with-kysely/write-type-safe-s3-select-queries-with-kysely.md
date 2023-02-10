@@ -38,19 +38,19 @@ What if we want to retrieve the fire Pokemons from generation 1 and 2, ordered b
 import { S3Client } from '@aws-sdk/client-s3';
 
 export const s3Client = new S3Client({
-  region: 'us-east-1' // <= Your region here
+  region: 'us-east-1', // <= Your region here
 });
 
 const { Payload } = await s3Client.send(
   new SelectObjectContentCommand({
-		// 👇 Those first params are required but don't mind them too much
-		ExpressionType: 'SQL',
+    // 👇 Those first params are required but don't mind them too much
+    ExpressionType: 'SQL',
     OutputSerialization: {
       JSON: {
         RecordDelimiter: ',',
       },
     },
-		// 👇 Those depends on the CSV
+    // 👇 Those depends on the CSV
     InputSerialization: {
       CSV: {
         FileHeaderInfo: 'USE',
@@ -58,10 +58,10 @@ const { Payload } = await s3Client.send(
         QuoteCharacter: '"',
       },
     },
-		// 👇 Those are the most important
-		Bucket: 'my-super-bucket-name',
-	  Key: 'my-pokemons.csv',
-	  Expression: `
+    // 👇 Those are the most important
+    Bucket: 'my-super-bucket-name',
+    Key: 'my-pokemons.csv',
+    Expression: `
 			select "id", "name", "customName", "type" as "pokemonType", "level"
 				from "S3Object"
 				where
@@ -69,7 +69,7 @@ const { Payload } = await s3Client.send(
 					and "type" = 'fire'
 				order by "level"
 	  `,
-	})
+  }),
 );
 
 // Note that this command requires the s3:GetObject permission on the bucket
@@ -92,9 +92,7 @@ import type { SelectObjectContentEventStream } from '@aws-sdk/client-s3';
 const textDecoder = new TextDecoder();
 
 const parseS3SelectEventStream = async (
-  s3SelectEventStream:
-    | AsyncIterable<SelectObjectContentEventStream>
-    | undefined,
+  s3SelectEventStream: AsyncIterable<SelectObjectContentEventStream> | undefined,
 ): Promise<unknown[]> => {
   if (!s3SelectEventStream) {
     return [];
@@ -109,9 +107,7 @@ const parseS3SelectEventStream = async (
     }
   }
 
-  const rows = JSON.parse(
-    '[' + stringifiedJSONOutputs.join('').slice(0, -1) + ']',
-  ) as unknown[];
+  const rows = JSON.parse('[' + stringifiedJSONOutputs.join('').slice(0, -1) + ']') as unknown[];
 
   return rows;
 };
@@ -122,12 +118,12 @@ Now we can parse the output like this:
 ```tsx
 const { Payload: s3SelectEventStream } = await s3Client.send(
   new SelectObjectContentCommand({
-	  // ...
-	})
-)
+    // ...
+  }),
+);
 
 // 🎉 Ta-da!
-const myPokemons: unknown[] = await parseS3SelectEventStream(s3SelectEventStream)
+const myPokemons: unknown[] = await parseS3SelectEventStream(s3SelectEventStream);
 ```
 
 ## Building the query with Kysely
@@ -139,21 +135,21 @@ That’s where Kysely comes to the rescue: Kysely is a [type-safe and devX-frien
 Let’s begin by designing our CSV type:
 
 ```tsx
-enum PokemonType {
-	Water = "water",
-	Grass = "grass",
-	Fire = "fire",
-	// ...
+enum PokemonType {
+  Water = 'water',
+  Grass = 'grass',
+  Fire = 'fire',
+  // ...
 }
 
 interface PokemonCSV {
-	id: string;
-	name: string;
-	customName?: string;
-	type: PokemonType;
-	// 👇 In CSVs everything is a string
-	level: string;
-	generation: '1' | '2' // ...up to 9
+  id: string;
+  name: string;
+  customName?: string;
+  type: PokemonType;
+  // 👇 In CSVs everything is a string
+  level: string;
+  generation: '1' | '2'; // ...up to 9
 }
 ```
 
@@ -168,13 +164,7 @@ yarn add kysely
 ```
 
 ```tsx
-import {
-  Kysely,
-  DummyDriver,
-  SqliteAdapter,
-  SqliteIntrospector,
-  SqliteQueryCompiler,
-} from 'kysely';
+import { Kysely, DummyDriver, SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely';
 
 interface Database {
   S3Object: PokemonCSV;
@@ -210,7 +200,7 @@ const kyselyQuery = db
   // 🙌 Every method is type-safe!
   .where('generation', 'in', ['1', '2'])
   .where('type', '=', PokemonType.Fire)
-  .orderBy('level')
+  .orderBy('level');
 ```
 
 To protect us from nasty SQL injections, Kysely doesn’t directly provide us with the SQL expression but with a `sql` string and `parameters` array:
@@ -225,10 +215,7 @@ const {
 Because S3 Select doesn’t accept parameters in its API, we have to hydrate the parameters ourselves:
 
 ```tsx
-const dangerouslyHydrateSQLParameters = (
-  sql: string,
-  parameters: readonly unknown[],
-): string => {
+const dangerouslyHydrateSQLParameters = (sql: string, parameters: readonly unknown[]): string => {
   for (const parameter of parameters) {
     sql = sql.replace('?', `'${String(parameter)}'`);
   }
@@ -239,8 +226,8 @@ const dangerouslyHydrateSQLParameters = (
 const { sql, parameters } = kyselyQuery.compile();
 
 // ⛔️ **BE SURE TO VALIDATE DYNAMIC PARAMETERS FIRST** ⛔️
-const sqlExpression = dangerouslyHydrateSQLParameters(sql, parameters)
-console.log(sqlExpression)
+const sqlExpression = dangerouslyHydrateSQLParameters(sql, parameters);
+console.log(sqlExpression);
 
 // 👇 We retrieve the same expression as above:
 // select "id", "name", "customName", "type" as "pokemonType", "level"
@@ -273,18 +260,18 @@ type QueryResponseRow<
     // 👇 Unpack the array
   >[number];
 
-type Pokemon = QueryResponseRow<typeof kyselyQuery>
+type Pokemon = QueryResponseRow<typeof kyselyQuery>;
 
 // 👇 Equivalent to:
 type Pokemon = {
   id: string;
   name: string;
-	// 👍 customName is indeed possibly undefined
+  // 👍 customName is indeed possibly undefined
   customName: string | undefined;
   level: string;
-	// 🙌 "type" property has been renamed
+  // 🙌 "type" property has been renamed
   pokemonType: PokemonType;
- }
+};
 ```
 
 Now we can just use this type the response of our `parseS3SelectEventStream` util and voilà! We’re done! For good this time 🙂
