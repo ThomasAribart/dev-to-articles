@@ -8,13 +8,11 @@ series:
 canonical_url:
 ---
 
-# Write type-safe S3 Select queries with Kysely
-
-S3 Select is an Amazon S3 feature that enables [retrieving subsets of a S3 object content via SQL expressions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-glacier-select-sql-reference-select.html). You can use clauses like SELECT and WHERE to fetch data from CSVs, JSONs, or Apache Parquet files, even if they are compressed with GZIP and/or server-side encrypted.
+S3 Select is an Amazon S3 feature that enables [retrieving subsets of S3 Objects content via SQL expressions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-glacier-select-sql-reference-select.html). You can use clauses like SELECT and WHERE to fetch data from CSVs, JSONs, or Apache Parquet files, even if they are compressed with GZIP and/or server-side encrypted.
 
 S3 Select is simple to use, [cost-effective](https://aws.amazon.com/s3/pricing/) and can [drastically improve the performances of your application](https://aws.amazon.com/fr/blogs/storage/run-queries-up-to-9x-faster-using-trino-with-amazon-s3-select-on-amazon-emr/) depending on your query. It is overall a great addition to the Serverless developer toolkit, particularly when:
 
-- You need to access a large amount of data (which would make it [unfit for other storage solutions like DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html#limits-items))
+- You need to access a large amount of data (which would make it unfit for [other storage solutions like DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html#limits-items))
 - You need to query and filter it in a complex and/or dynamic way
 - You don’t need to use a JOIN clause (as S3 Select can only query a single file) or to update a single record of the data (it is called S3 Select, not S3 Insert 🙂)
 
@@ -43,7 +41,7 @@ export const s3Client = new S3Client({
 
 const { Payload } = await s3Client.send(
   new SelectObjectContentCommand({
-    // 👇 Those first params are required but don't mind them too much
+    // 👇 Those first params are required but don't mind them
     ExpressionType: 'SQL',
     OutputSerialization: {
       JSON: {
@@ -60,7 +58,7 @@ const { Payload } = await s3Client.send(
     },
     // 👇 Those are the most important
     Bucket: 'my-super-bucket-name',
-    Key: 'my-pokemons.csv',
+    Key: 'pokedex.csv',
     Expression: `
 			select "id", "name", "customName", "type" as "pokemonType", "level"
 				from "S3Object"
@@ -72,7 +70,7 @@ const { Payload } = await s3Client.send(
   }),
 );
 
-// Note that this command requires the s3:GetObject permission on the bucket
+// Note that this command requires the s3:GetObject permission
 ```
 
 This is great and all but we can make it better:
@@ -92,7 +90,9 @@ import type { SelectObjectContentEventStream } from '@aws-sdk/client-s3';
 const textDecoder = new TextDecoder();
 
 const parseS3SelectEventStream = async (
-  s3SelectEventStream: AsyncIterable<SelectObjectContentEventStream> | undefined,
+  s3SelectEventStream:
+    | AsyncIterable<SelectObjectContentEventStream>
+    | undefined,
 ): Promise<unknown[]> => {
   if (!s3SelectEventStream) {
     return [];
@@ -107,7 +107,9 @@ const parseS3SelectEventStream = async (
     }
   }
 
-  const rows = JSON.parse('[' + stringifiedJSONOutputs.join('').slice(0, -1) + ']') as unknown[];
+  const rows = JSON.parse(
+    '[' + stringifiedJSONOutputs.join('').slice(0, -1) + ']',
+  ) as unknown[];
 
   return rows;
 };
@@ -123,12 +125,14 @@ const { Payload: s3SelectEventStream } = await s3Client.send(
 );
 
 // 🎉 Ta-da!
-const myPokemons: unknown[] = await parseS3SelectEventStream(s3SelectEventStream);
+const myPokemons: unknown[] = await parseS3SelectEventStream(
+  s3SelectEventStream,
+);
 ```
 
 ## Building the query with Kysely
 
-Let’s face it, writing SQL queries by hand is a pain and very error prone. Besides, would it be nice to have some type error if the CSV suddenly changes shape?
+Let’s face it, writing SQL queries by hand is a pain and very error prone. Besides, wouldn't it be nice to have some type error if the CSV suddenly changes shape?
 
 That’s where Kysely comes to the rescue: Kysely is a [type-safe and devX-friendly typescript SQL query builder](https://github.com/koskimas/kysely). It was designed to work with PostgreSQL and MySQL, but it exposes a few classes that can let us write queries without being connected to an actual relational database.
 
@@ -164,7 +168,13 @@ yarn add kysely
 ```
 
 ```tsx
-import { Kysely, DummyDriver, SqliteAdapter, SqliteIntrospector, SqliteQueryCompiler } from 'kysely';
+import {
+  Kysely,
+  DummyDriver,
+  SqliteAdapter,
+  SqliteIntrospector,
+  SqliteQueryCompiler,
+} from 'kysely';
 
 interface Database {
   S3Object: PokemonCSV;
@@ -215,7 +225,10 @@ const {
 Because S3 Select doesn’t accept parameters in its API, we have to hydrate the parameters ourselves:
 
 ```tsx
-const dangerouslyHydrateSQLParameters = (sql: string, parameters: readonly unknown[]): string => {
+const dangerouslyHydrateSQLParameters = (
+  sql: string,
+  parameters: readonly unknown[],
+): string => {
   for (const parameter of parameters) {
     sql = sql.replace('?', `'${String(parameter)}'`);
   }
@@ -251,7 +264,11 @@ import type { SelectQueryBuilder } from 'kysely';
 
 type QueryResponseRow<
   // 👇 Add a large type constraint
-  KyselyQuery extends SelectQueryBuilder<Record<string, unknown>, string, unknown>,
+  KyselyQuery extends SelectQueryBuilder<
+    Record<string, unknown>,
+    string,
+    unknown
+  >,
 > =
   // 👇 Remove the Promise wrapper
   Awaited<
