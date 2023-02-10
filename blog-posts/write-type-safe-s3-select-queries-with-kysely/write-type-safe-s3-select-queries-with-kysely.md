@@ -3,7 +3,7 @@ published: false
 title: 'Write type-safe S3 Select queries with Kysely'
 cover_image:
 description: 'Write type-safe S3 Select queries with Kysely'
-tags: Typescript, S3, SQL
+tags: Typescript, S3, SQL, Serverless
 series:
 canonical_url:
 ---
