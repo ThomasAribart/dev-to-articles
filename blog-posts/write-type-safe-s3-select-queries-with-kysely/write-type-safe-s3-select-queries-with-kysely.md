@@ -3,7 +3,7 @@ published: false
 title: 'Write type-safe S3 Select queries with Kysely'
 cover_image:
 description: 'Write type-safe S3 Select queries with Kysely'
-tags: Typescript, S3, SQL, AWS, Serverless, Kysely
+tags: Typescript, S3, SQL
 series:
 canonical_url:
 ---
@@ -24,7 +24,7 @@ In this article, we’ll learn how to run S3 Select commands in Typescript, and 
 
 Let’s say that we have a DB of Pokemons in the shape of a CSV, stored somewhere in a S3 Bucket:
 
-```
+```csv
 id ; name      ; customName ; type     ; level ; generation
 1  ; pikachu   ;            ; electric ; 42    ; 1
 2  ; charizard ;            ; fire     ; 54    ; 1
