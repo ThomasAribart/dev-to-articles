@@ -294,6 +294,6 @@ Now we can just use this type the response of our `parseS3SelectEventStream` uti
 
 Both S3 Select and Kysely are awesome tools. By joining both of them, we can run performant, scalable and cost-effective queries while benefitting from strong and DRY type-safety and inference 🥳
 
-Note that there is one minor drawback, though: Kysely will add 120KB in your Lambdas bundles (props to for [serverless-analyze-bundle-plugin](https://github.com/adriencaccia/serverless-analyze-bundle-plugin/) for helping me out with this 🙌). It is not a lot, but not negligible either as [NodeJS Lambdas bundles above 5MB negatively impacts their cold starts](https://mikhail.io/serverless/coldstarts/aws/). So you might want to re-evaluate adding Kysely to your bundles if your query is not changing often.
-
 ![Type-safe S3 Select queries with Kysely](./type_safe_s3_select_queries_with_kysely_original.png)
+
+Note that there is one minor drawback, though: Kysely will add 120KB in your Lambdas bundles (props to for [serverless-analyze-bundle-plugin](https://github.com/adriencaccia/serverless-analyze-bundle-plugin/) for helping me out with this 🙌). It is not a lot, but not negligible either as [NodeJS Lambdas bundles above 5MB negatively impacts their cold starts](https://mikhail.io/serverless/coldstarts/aws/). So you might want to re-evaluate adding Kysely to your bundles if your query is not changing often.
