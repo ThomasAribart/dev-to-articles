@@ -1,8 +1,8 @@
 ---
 published: false
-title: 'Write type-safe S3 Select queries with Kysely'
-cover_image: 'https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/write-type-safe-s3-select-queries-with-kysely/type_safe_s3_select_queries_with_kysely_resized.webp'
-description: 'Write type-safe S3 Select queries with Kysely'
+title: Type-safe S3 Select queries with Kysely
+cover_image: https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/write-type-safe-s3-select-queries-with-kysely/type_safe_s3_select_queries_with_kysely_resized.webp
+description: Join Kysely and S3 Select to query .csv, Parquet or JSON files content from your S3 Bucket in a type-safe and devX-friendly way!
 tags: Typescript, S3, SQL, Serverless
 series:
 canonical_url:
@@ -289,6 +289,8 @@ type Pokemon = {
 ```
 
 Now we can just use this type the response of our `parseS3SelectEventStream` util and voilà! We’re done! For good this time 🙂
+
+![Type-safe S3 Select queries with Kysely](./type_safe_s3_select_queries_with_kysely_original.png)
 
 ## Conclusion
 
