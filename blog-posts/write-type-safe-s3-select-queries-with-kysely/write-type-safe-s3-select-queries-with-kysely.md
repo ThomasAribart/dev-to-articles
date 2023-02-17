@@ -30,10 +30,10 @@ id ; name      ; customName ; type     ; level ; generation
 ...
 ```
 
-What if we want to retrieve the fire Pokemons from generation 1 and 2, ordered by level? Well, S3 Select let us do that with the following query:
+What if we want to retrieve the fire Pokemons from generation 1 and 2? Well, S3 Select let us do that with the following query:
 
 ```tsx
-import { S3Client } from '@aws-sdk/client-s3';
+import { S3Client, SelectObjectContentCommand } from '@aws-sdk/client-s3';
 
 export const s3Client = new S3Client({
   region: 'us-east-1', // <= Your region here
@@ -65,7 +65,6 @@ const { Payload } = await s3Client.send(
 				where
 					"generation" in ('1', '2')
 					and "type" = 'fire'
-				order by "level"
 	  `,
   }),
 );
@@ -209,8 +208,7 @@ const kyselyQuery = db
   ])
   // 🙌 Every method is type-safe!
   .where('generation', 'in', ['1', '2'])
-  .where('type', '=', PokemonType.Fire)
-  .orderBy('level');
+  .where('type', '=', PokemonType.Fire);
 ```
 
 To protect us from nasty SQL injections, Kysely doesn’t directly provide us with the SQL expression but with a `sql` string and `parameters` array:
@@ -248,7 +246,6 @@ console.log(sqlExpression);
 //   where
 //     "generation" in ('1', '2')
 //     and "type" = 'fire'
-//   order by "level"
 ```
 
 We just have to provide it to our S3 Select command and voilà! We’re done!
