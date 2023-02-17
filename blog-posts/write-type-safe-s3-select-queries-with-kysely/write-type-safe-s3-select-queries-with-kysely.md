@@ -1,7 +1,7 @@
 ---
 published: false
 title: 'Write type-safe S3 Select queries with Kysely'
-cover_image: './type_safe_s3_select_queries_with_kysely.webp'
+cover_image: 'https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/write-type-safe-s3-select-queries-with-kysely/type_safe_s3_select_queries_with_kysely.webp'
 description: 'Write type-safe S3 Select queries with Kysely'
 tags: Typescript, S3, SQL, Serverless
 series:
