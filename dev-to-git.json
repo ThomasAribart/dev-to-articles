@@ -2,5 +2,9 @@
   {
     "id": 1360937,
     "relativePathToArticle": "./blog-posts/write-type-safe-s3-select-queries-with-kysely/write-type-safe-s3-select-queries-with-kysely.md"
+  },
+  {
+    "id": 1387220,
+    "relativePathToArticle": "./blog-posts/an-in-depth-comparison-of-the-most-popular-dynamodb-wrappers/an-in-depth-comparison-of-the-most-popular-dynamodb-wrappers.md"
   }
 ]
