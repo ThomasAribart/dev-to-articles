@@ -43,12 +43,12 @@ await DocumentClient.send(
 
 It is a very simple example (updating two fields of a `Movie` item), yet already very verbose 😅 And **things only get messier as the complexity of your business logic grows**: What if your items have 20 attributes? With some of them deeply nested? Or optional? What if you want to index an item or not depending on its values (e.g. a `status` attribute)? What about polymorphism?
 
-In those cases (which are quite common) **the code needed to generate those requests can get very hard to maintain**. That is why, very early on, developers built open-source libraries to “wrap” the DynamoDB client, with two goals in mind:
+In those cases (which are quite common) **the required code to generate those requests can get very hard to maintain**. That is why, very early on, developers built open-source libraries to “wrap” the DynamoDB client, with two goals in mind:
 
-- 🏋️‍♀️ Simplifying the craft of DynamoDB requests
+- 🏋️‍♀️ Simplifying the writing of DynamoDB requests
 - 📐 Adding run-time **data validation**, i.e. **“artificial” schemas** to a schema-less DB (and more recently type-safety)
 
-For instance, here is an example of the same `UpdateCommand` with [DynamoDB-Toolbox](https://github.com/jeremydaly/dynamodb-toolbox):
+For instance, here is an example of the same `UpdateCommand` with one of those wrappers, [DynamoDB-Toolbox](https://github.com/jeremydaly/dynamodb-toolbox):
 
 ```tsx
 import { Table, Entity } from 'dynamodb-toolbox';
@@ -82,7 +82,7 @@ await MovieEntity.update({
 });
 ```
 
-And just like that, we went from an obscure 18-lines object to a readable and elegant 8-liners 🤩 Not bad, heh?
+And just like that, we went from an obscure 18-line object to a readable and elegant 8-liner 🤩 Not bad, don't you think?
 
 DynamoDB-Toolbox is not the only SDK wrapper out there. If you browse Alex DeBrie’s [awesome-dynamodb-tools](https://github.com/alexdebrie/awesome-dynamodb#tools) repo, you’ll actually find a bunch of them. So, **which one should you chose?**
 
@@ -95,8 +95,8 @@ In this article, we took an in depth comparison of the **4 most popular DynamoDB
 
 We ranked them based on the following criteria:
 
-- 📣 **Library state**: Classic open-source KPIs such as number of downloads, community, documentation etc…
-- 🏗️ **Data modeling**: The broadness of their Entity definition API. Do they allow attribute name re-mapping (useful for [single-table design](https://www.alexdebrie.com/posts/dynamodb-single-table/))? Do they support enums? Nested attributes definitions? Computing indexes from other attributes? etc…
+- 📣 **Library state**: Classic open-source KPIs such as number of downloads, community, documentation etc.
+- 🏗️ **Data modeling**: The broadness of their Entity definition API. Do they allow attribute name re-mapping (useful for [single-table design](https://www.alexdebrie.com/posts/dynamodb-single-table/))? Do they support enums? Nested attributes definitions? Computing indexes from other attributes?
 - ✨ **Typescript support**: Type-safety is all the rage these days! All libraries come with some sort of type-safety, but type-inference (i.e. inferring tailored types from custom schemas) is still hard to get right.
 - 🤖 **API**: How easy it is to do common DynamoDB requests like `put`, `get` or `query`... with secondary indexes, filters and conditions (You can find examples for each wrapper in [our dedicated repo](https://github.com/theodo/dynamodb-tools)).
 
@@ -114,7 +114,7 @@ We ranked them based on the following criteria:
 
 All four libraries are well maintained, and have enough GitHub stars and npm downloads to be considered “battle tested”.
 
-Dynamoose has the highest stats (probably from being the first one around). However, it’s the heaviest, with a size of 382KB, which is not a lot, but not negligible either, considering that [bundles above 5MB negatively impacts Lambdas cold starts](https://mikhail.io/serverless/coldstarts/aws/).
+Dynamoose has the highest stats (probably from being the first one around). However, it’s the heaviest, with a size of 382KB, which is not negligible, considering that [bundles above 5MB negatively impact Lambdas cold starts](https://mikhail.io/serverless/coldstarts/aws/).
 
 ![DynamoDB Wrappers Stars History](./dynamodb-wrappers-stars-history.png)
 
@@ -127,8 +127,8 @@ We initially started with a very broad scope of features useful for Entity defin
 - **Nested attributes definition:** Could we type nested fields of lists and maps attributes (like `plot` and `rank` in our first `Movie` example)?
 - **Enum support**: Could we specify a finite range of values for a primitive attribute?
 - **Default values**: Could we provide default values for an attribute? That is especially useful for entities with “simple” access patterns like fixed strings. We differentiated _independent defaults_ (fixed or derived from context such as timestamps or env variables) from _dependent defaults_ (computed from other attributes).
-- **Pre-save/post-fetch attribute transformation**: This can be needed for technical reasons, such as prefixing keys or indexed attributes. When possible, it’s best to hide such details from your code and let your wrapper handle the heavy-lifting.
-- **Polymorphism support**: Sometimes, items can have different statuses and shapes that go with them. We tested how easy it was to translate in each library.
+- **Pre-save/post-fetch attribute transformation**: This can be needed for technical reasons, such as prefixing attributes. When possible, it’s best to hide such details from your code and let your wrapper handle the heavy-lifting.
+- **Polymorphism support**: Sometimes, items can have different statuses and shapes that go with them. We tested how easy it was to translate to in each library.
 
 |  | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
 | --- | --- | --- | --- | --- |
@@ -141,7 +141,7 @@ We initially started with a very broad scope of features useful for Entity defin
 
 Overall, Dynamoose and ElectroDB have the upper hand, with ElectroDB being slightly ahead as it allows deriving attributes default values from other attributes.
 
-Surprisingly, **none of those libraries handled polymorphism and type-safe dependent defaults**. As a maintainer of DynamoDB-Toolbox, I know for sure that those features are coming in the next major, so if you’re already using it, do not consider migrating to ElectroDB just yet 🙂
+Surprisingly, **none of those libraries handles polymorphism and type-safe dependent defaults**. As a maintainer of DynamoDB-Toolbox, I know for sure that those features are coming in the next major, so if you’re already using it, do not consider migrating to ElectroDB just yet 🙂
 
 ## ✨ Typescript support
 
@@ -165,7 +165,7 @@ Once again ElectroDB has the upper hand here. Very nice job, Tyler W. Walsh 😎
 
 ## 🤖 API
 
-Finally we compared each solution’s API regarding requests to DynamoDB. We Warning: This one is a bit subjective. Verbosity. How natural the requests were written.
+Finally we compared each solution’s API regarding requests to DynamoDB. Warning: This one is a bit subjective. Verbosity. How natural the requests were written.
 
 |  | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
 | --- | --- | --- | --- | --- |
@@ -194,10 +194,10 @@ Overall, as of march 2023, **ElectroDB looks like the best DynamoDB client wrapp
 
 That being said, there are some parts to improve:
 
-- Type inference still as some blind spots
+- Type inference still has some blind spots
 - There's no support for polymorphism
 - Entity definition autocompletion could be more helpful (it would benefit from a [zod-like approach](https://github.com/colinhacks/zod))
 
-Also, I’m not a fan of the `find` and `match` methods it exposes, which are not native DynamoDB requests and can build costly and inefficient `scans` requests without you being aware. Otherwise, it is a good match!
+Also, I’m not a fan of the `find` and `match` methods it exposes, which are not native DynamoDB requests and can build costly and inefficient `scan` requests without you being aware. Otherwise, it is a good match!
 
-Finally, **I would not rule out DynamoDB-Toolbox just yet!** It’s next major is just around the corner, with many new capabilities that even ElectroDB doesn’t have (such as type-safe dependent defaults and polymorphism). So expect a round 2 of this article in the next few months… 😏
+Finally, **I would not rule out DynamoDB-Toolbox just yet!** Its next major is just around the corner, with many new capabilities that even ElectroDB doesn’t have (such as type-safe dependent defaults and polymorphism). So expect a round 2 of this article in the next few months… 😉
