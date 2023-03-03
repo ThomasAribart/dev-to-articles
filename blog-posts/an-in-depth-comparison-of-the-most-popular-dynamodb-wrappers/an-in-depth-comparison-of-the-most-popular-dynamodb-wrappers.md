@@ -2,7 +2,7 @@
 published: false
 title: An in-depth comparison of the most popular DynamoDB wrappers
 cover_image: https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/write-type-safe-s3-select-queries-with-kysely/type_safe_s3_select_queries_with_kysely_resized.webp
-description: TODO
+description: An in-depth comparison of the 4 most popular wrappers for the DynamoDB Client in Typescript. Which one should you chose?
 tags: Typescript, DynamoDB, Wrapper, Serverless
 series:
 canonical_url:
@@ -96,7 +96,7 @@ In this article, we took an in depth comparison of the **4 most popular DynamoDB
 We ranked them based on the following criteria:
 
 - 📣 **Library state**: Classic open-source KPIs such as number of downloads, community, documentation etc…
-- 🏗️ **Data modelling**: The broadness of their Entity definition API. Do they allow attribute name re-mapping (useful for [single-table design](https://www.alexdebrie.com/posts/dynamodb-single-table/))? Do they support enums? Nested attributes definitions? Computing indexes from other attributes? etc…
+- 🏗️ **Data modeling**: The broadness of their Entity definition API. Do they allow attribute name re-mapping (useful for [single-table design](https://www.alexdebrie.com/posts/dynamodb-single-table/))? Do they support enums? Nested attributes definitions? Computing indexes from other attributes? etc…
 - ✨ **Typescript support**: Type-safety is all the rage these days! All libraries come with some sort of type-safety, but type-inference (i.e. inferring tailored types from custom schemas) is still hard to get right.
 - 🤖 **API**: How easy it is to do common DynamoDB requests like `put`, `get` or `query`... with secondary indexes, filters and conditions (You can find examples for each wrapper in [our dedicated repo](https://github.com/theodo/dynamodb-tools)).
 
@@ -104,13 +104,13 @@ We ranked them based on the following criteria:
 
 | (\*as of 2023/02) | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
 | --- | --- | --- | --- | --- |
-| First release date | 2014-02-27 | 2019-11-20 | 2020-03-11 | 2021-01-12 |
-| Last release date | ✅ Jan. 6, 2023 | ✅ Jan. 8, 2023 | ✅ Jan. 20, 2023 | ✅ Jan. 25, 2023 |
-| Github ⭐️ | 1900 | 1400 | 530 | 505 |
-| NPM weekly downloads | 86 k | 38 k | 4 k | 16 k |
-| Bundle size | 🟡 382 kB | ✅ 64.1 kB | 🟡 176.7 kB | ✅ 64.3 kB |
-| Documentation | ✅ | ✅ | 🟡 No global search | ❌ Can be improved |
-| DynamoDB Client v3 compatibility | ✅ | ❌ | ✅ | ✅ |
+| **First release date** | 2014-02-27 | 2019-11-20 | 2020-03-11 | 2021-01-12 |
+| **Last release date** | ✅ Jan. 6, 2023 | ✅ Jan. 8, 2023 | ✅ Jan. 20, 2023 | ✅ Jan. 25, 2023 |
+| **Github ⭐️** | 1900 | 1400 | 530 | 505 |
+| **NPM weekly downloads** | 86 k | 38 k | 4 k | 16 k |
+| **Bundle size** | 🟡 382 kB | ✅ 64.1 kB | 🟡 176.7 kB | ✅ 64.3 kB |
+| **Documentation** | ✅ | ✅ | 🟡 No global search | ❌ Can be improved |
+| **DynamoDB Client v3 compatibility** | ✅ | ❌ | ✅ | ✅ |
 
 All four libraries are well maintained, and have enough GitHub stars and npm downloads to be considered “battle tested”.
 
@@ -120,7 +120,7 @@ Dynamoose has the highest stats (probably from being the first one around). Howe
 
 The main takeaways are that DynamoDB-Toolbox is not compatible with the V3 of the DynamoDB client (though [it should be coming soon](https://github.com/jeremydaly/dynamodb-toolbox/pull/174)), and that the DynamoDB-OneTable documentation leaves to be desired.
 
-## 🏗️ Data modelling
+## 🏗️ Data modeling
 
 We initially started with a very broad scope of features useful for Entity definition (like specifying attributes as required, or aliasing attributes). However, most of them were already implemented by all libraries. For the sake of simplicity, we removed them and kept the following ones:
 
@@ -130,13 +130,13 @@ We initially started with a very broad scope of features useful for Entity defin
 - **Pre-save/post-fetch attribute transformation**: This can be needed for technical reasons, such as prefixing keys or indexed attributes. When possible, it’s best to hide such details from your code and let your wrapper handle the heavy-lifting.
 - **Polymorphism support**: Sometimes, items can have different statuses and shapes that go with them. We tested how easy it was to translate in each library.
 
-|  | **🦌 Dynamoose** | **🧰 DynamoDB-Toolbox** | **⚡️ ElectroDB** | **💍 DynamoDB-OneTable** |
+|  | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
 | --- | --- | --- | --- | --- |
 | **Nested attributes definition** | ✅ | ❌ | ✅ | ✅ |
 | **Enum support** | ✅ | ❌ | ✅ | ✅ |
 | **Independent defaults** | ✅ | ✅ | ✅ | ✅ |
-| **Dependent defaults** | ❌ | 🟡 Not type-safe | 🟡 Not type-safe | 🟡 Via string templates like `"user#${email}"` |
-| **Attribute value transformation** | ✅ | ✅ | ✅ | 🟡 Possible but hard to use |
+| **Dependent defaults** | ❌ | ✅ | ✅ | 🟡 Via string templates like `"user#${email}"` |
+| **Attribute value transformation** | ✅ | ✅ | ✅ | ❌ |
 | **Polymorphism** | ❌ | ❌ | ❌ | ❌ |
 
 Overall, Dynamoose and ElectroDB have the upper hand, with ElectroDB being slightly ahead as it allows deriving attributes default values from other attributes.
@@ -145,34 +145,29 @@ Surprisingly, **none of those libraries handled polymorphism and type-safe depen
 
 ## ✨ Typescript support
 
-All libraries support Typescript at a basic level, so we mostly focused on [type inference](https://www.typescriptlang.org/docs/handbook/type-inference.html). We looked at:
+All libraries support Typescript at a basic level, so we mostly focused on [type inference](https://www.typescriptlang.org/docs/handbook/type-inference.html). We looked for type inference in:
 
-- Type inference in **DynamoDB requests** (root and nested level attributes)
-- Type inference in **conditions & filters**
-- **IDE performances**
+- **DynamoDB requests** (root and nested level attributes)
+- **Dependent defaults definition**
+- **Expressions (Conditions, filters and projections)**
 
-|  | **🦌 Dynamoose** | **🧰 DynamoDB-Toolbox** | **⚡️ ElectroDB** | **💍 DynamoDB-OneTable** |
+|  | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
 | --- | --- | --- | --- | --- |
-| Requests - Root attributes | ❌ | ✅ | ✅ | ✅ |
-| Requests - Nested attributes | ❌ | ❌ | ✅ | ✅ |
-| Conditions & filters | ❌ | 🟡 yes but only at root level | ✅ | 🟡 String templates |
-| Type inference performances | ❌ | ❌ Slow | ✅ | ✅ |
+| **Requests** (Root attributes) | ❌ | ✅ | ✅ | ✅ |
+| **Requests** (Nested attributes) | ❌ | ❌ | ✅ | ✅ |
+| **Dependent defaults** | ❌ | ❌ | ❌ | ❌ |
+| **Expressions** | ❌ | 🟡 yes but only at root level | ✅ | ❌ Via string templates like `"(${role} = {admin})"` |
+| **IDE performances** | ❌ | ❌ Slow | ✅ | ✅ |
 
-Once again ElectroDB is the most powerful and performant solution out there. For example, the following where condition works with ElectroDB:
-
-```tsx
-myEntity.query
-  .index({ id: '456' })
-  .where((instance, { lte }) => lte(instance.mapAttribute.date, '2021'));
-```
+Once again ElectroDB has the upper hand here. Very nice job, Tyler W. Walsh 😎
 
 ---
 
 ## 🤖 API
 
-Finally we compared each solution’s API regarding requests to DynamoDB. We Warning: This one is a bit subjective. Natural the requests were written.
+Finally we compared each solution’s API regarding requests to DynamoDB. We Warning: This one is a bit subjective. Verbosity. How natural the requests were written.
 
-|  | **🦌 Dynamoose** | **🧰 DynamoDB-Toolbox** | **⚡️ ElectroDB** | **💍 DynamoDB-OneTable** |
+|  | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
 | --- | --- | --- | --- | --- |
 | **Single Item Requests** | ❌ | 🟡 | ✅ | 🟡 |
 | **Queries & Scans** | ❌ | 🟡 | ✅ | 🟡 |
@@ -195,8 +190,14 @@ const { Item } = await PokemonInstanceEntity.get(pokemonMasterId, {
 
 ## Conclusion
 
-Overall, as of march 2023, **ElectroDB looks like the best DynamoDB client wrapper**. Although it is newer and less “battle tested”, it is better than its concurrent on every other criteria: It has the **same data modelling features**, a **more complete type inference**, and a **nicer API**.
+Overall, as of march 2023, **ElectroDB looks like the best DynamoDB client wrapper**. Although it is newer and less “battle tested”, it is better than its concurrent on every other criteria: It has the **same data modeling features**, a **more complete type inference**, and a **nicer API**.
 
-The only parts I’m not a fan of are the `find` and `match` methods it exposes, which are not native DynamoDB requests and can build costly and inefficient `scans` requests without you being aware. Otherwise, it looks like a good match!
+That being said, there are some parts to improve:
 
-HOWEVER, **I would not rule out DynamoDB-Toolbox just yet!** It’s next major is just around the corner, with many new capabilities that even ElectroDB doesn’t have (such as type-safe dependent defaults and polymorphism). So expect a round 2 of this article in the next few months… 😏
+- Type inference still as some blind spots
+- There's no support for polymorphism
+- Entity definition autocompletion could be more helpful (it would benefit from a [zod-like approach](https://github.com/colinhacks/zod))
+
+Also, I’m not a fan of the `find` and `match` methods it exposes, which are not native DynamoDB requests and can build costly and inefficient `scans` requests without you being aware. Otherwise, it is a good match!
+
+Finally, **I would not rule out DynamoDB-Toolbox just yet!** It’s next major is just around the corner, with many new capabilities that even ElectroDB doesn’t have (such as type-safe dependent defaults and polymorphism). So expect a round 2 of this article in the next few months… 😏
