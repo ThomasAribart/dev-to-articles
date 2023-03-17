@@ -173,6 +173,7 @@ Finally we compared each solution’s API regarding requests to DynamoDB. Warnin
 | **Queries & Scans** | ❌ | 🟡 | ✅ | 🟡 |
 | **Conditions** | ✅ | 🟡 Not intuitive | ✅ | ❌ |
 | **Filters** | ✅ | 🟡 | ✅ | ❌ |
+| **Efficiency** | ✅ | 🟡 | ✅ | ❌ |
 
 ElectroDB has a better API for querying, name your indexes with business sense
 
