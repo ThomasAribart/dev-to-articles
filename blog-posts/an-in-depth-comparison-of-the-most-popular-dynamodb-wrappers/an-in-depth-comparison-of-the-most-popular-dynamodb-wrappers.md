@@ -53,7 +53,7 @@ For instance, here is an example of the same `UpdateCommand` with one of those w
 ```tsx
 import { Table, Entity } from 'dynamodb-toolbox';
 
-// Provided some minor boilerplate...
+// Provided some schema specifications...
 const MovieTable = new Table({
   name: 'TABLE_NAME',
   partitionKey: 'title',
@@ -100,6 +100,8 @@ We ranked them based on the following criteria:
 - ✨ **Typescript support**: Type-safety is all the rage these days! All libraries come with some sort of type-safety, but type-inference (i.e. inferring tailored types from custom schemas) is still hard to get right.
 - 🤖 **API**: How easy it is to do common DynamoDB requests like `put`, `get` or `query`... with secondary indexes, filters and conditions (You can find examples for each wrapper in [our dedicated repo](https://github.com/theodo/dynamodb-tools)).
 
+---
+
 ## 📣 Library state
 
 | (\*as of 2023/02) | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
@@ -120,6 +122,8 @@ Dynamoose has the highest stats (probably from being the first one around). Howe
 
 The main takeaways are that DynamoDB-Toolbox is not compatible with the V3 of the DynamoDB client (though [it should be coming soon](https://github.com/jeremydaly/dynamodb-toolbox/pull/174)), and that the DynamoDB-OneTable documentation leaves to be desired.
 
+---
+
 ## 🏗️ Data modeling
 
 We initially started with a very broad scope of features useful for Entity definition (like specifying attributes as required, or aliasing attributes). However, most of them were already implemented by all libraries. For the sake of simplicity, we removed them and kept the following ones:
@@ -128,7 +132,7 @@ We initially started with a very broad scope of features useful for Entity defin
 - **Enum support**: Could we specify a finite range of values for a primitive attribute?
 - **Default values**: Could we provide default values for an attribute? That is especially useful for entities with “simple” access patterns like fixed strings. We differentiated _independent defaults_ (fixed or derived from context such as timestamps or env variables) from _dependent defaults_ (computed from other attributes).
 - **Pre-save/post-fetch attribute transformation**: This can be needed for technical reasons, such as prefixing attributes. When possible, it’s best to hide such details from your code and let your wrapper handle the heavy-lifting.
-- **Polymorphism support**: Sometimes, items can have different statuses and shapes that go with them. We tested how easy it was to translate to in each library.
+- **Polymorphism support**: Sometimes, items can switch between different statuses and shapes that go with them. We tested how easy it was to translate to in each library.
 
 |  | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
 | --- | --- | --- | --- | --- |
@@ -142,6 +146,8 @@ We initially started with a very broad scope of features useful for Entity defin
 Overall, Dynamoose and ElectroDB have the upper hand, with ElectroDB being slightly ahead as it allows deriving attributes default values from other attributes.
 
 Surprisingly, **none of those libraries handles polymorphism and type-safe dependent defaults**. As a maintainer of DynamoDB-Toolbox, I know for sure that those features are coming in the next major, so if you’re already using it, do not consider migrating to ElectroDB just yet 🙂
+
+---
 
 ## ✨ Typescript support
 
@@ -183,11 +189,13 @@ If the previous section wasn't enough, this one should convince you NOT to use D
 
 That being said, ElectroDB has a the nicest API. I especially liked the possibility to [name queries according to their business meaning](https://electrodb.dev/en/queries/query/), but not the `find` and `match` methods, which are not native DynamoDB requests and can build costly and inefficient `scan` requests without you being aware.
 
+---
+
 ## Conclusion
 
 Overall, as of march 2023, **ElectroDB looks like the best DynamoDB client wrapper**. Although it is newer and less “battle tested”, it is better than its concurrent on every other criteria: It has the **same data modeling features**, a **more complete type inference**, and a **nicer API**.
 
-That being said, there are some parts to improve:
+Nevertheless, there are some parts that could be improved:
 
 - Type inference still has some blind spots
 - There's no support for polymorphism
