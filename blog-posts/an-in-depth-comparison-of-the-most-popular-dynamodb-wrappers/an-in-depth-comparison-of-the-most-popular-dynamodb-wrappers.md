@@ -124,7 +124,7 @@ The main takeaways are that DynamoDB-Toolbox is not compatible with the V3 of th
 
 We initially started with a very broad scope of features useful for Entity definition (like specifying attributes as required, or aliasing attributes). However, most of them were already implemented by all libraries. For the sake of simplicity, we removed them and kept the following ones:
 
-- **Nested attributes definition:** Could we type nested fields of lists and maps attributes (like `plot` and `rank` in our first `Movie` example)?
+- **Nested attributes definition**: Could we type nested fields of lists and maps attributes (like `plot` and `rank` in our first `Movie` example)?
 - **Enum support**: Could we specify a finite range of values for a primitive attribute?
 - **Default values**: Could we provide default values for an attribute? That is especially useful for entities with “simple” access patterns like fixed strings. We differentiated _independent defaults_ (fixed or derived from context such as timestamps or env variables) from _dependent defaults_ (computed from other attributes).
 - **Pre-save/post-fetch attribute transformation**: This can be needed for technical reasons, such as prefixing attributes. When possible, it’s best to hide such details from your code and let your wrapper handle the heavy-lifting.
@@ -135,7 +135,7 @@ We initially started with a very broad scope of features useful for Entity defin
 | **Nested attributes definition** | ✅ | ❌ | ✅ | ✅ |
 | **Enum support** | ✅ | ❌ | ✅ | ✅ |
 | **Independent defaults** | ✅ | ✅ | ✅ | ✅ |
-| **Dependent defaults** | ❌ | ✅ | ✅ | 🟡 Via string templates like `"user#${email}"` |
+| **Dependent defaults** | ❌ | ✅ | 🟡 Via the `set` option | 🟡 Via string templates like `"user#${email}"` |
 | **Attribute value transformation** | ✅ | ✅ | ✅ | ❌ |
 | **Polymorphism** | ❌ | ❌ | ❌ | ❌ |
 
@@ -147,9 +147,9 @@ Surprisingly, **none of those libraries handles polymorphism and type-safe depen
 
 All libraries support Typescript at a basic level, so we mostly focused on [type inference](https://www.typescriptlang.org/docs/handbook/type-inference.html). We looked for type inference in:
 
-- **DynamoDB requests** (root and nested level attributes)
+- **DynamoDB requests**: Root and nested level attributes
 - **Dependent defaults definition**
-- **Expressions (Conditions, filters and projections)**
+- **Expressions**: Conditions, filters and projections
 
 |  | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
 | --- | --- | --- | --- | --- |
@@ -165,29 +165,23 @@ Once again ElectroDB has the upper hand here. Very nice job, Tyler W. Walsh 😎
 
 ## 🤖 API
 
-Finally we compared each solution’s API regarding requests to DynamoDB. Warning: This one is a bit subjective. Verbosity. How natural the requests were written.
+Finally we compared the APIs of each solution for sending DynamoDB requests, i.e. how easy they were to write and understand (verbosity, complexity etc).
+
+- **Single Item Requests**: For usual `PUT`, `GET` and `DELETE` requests.
+- **Updates**: For `UPDATE` requests. We tested updating nested fields, adding values to numbers and elements to lists.
+- **Queries**: For querying and using secondary indexes.
+- **Conditions & filters**: For conditioned write operations and filtered query results.
 
 |  | 🦌 Dynamoose | 🧰 DynamoDB-Toolbox | ⚡️ ElectroDB | 💍 DynamoDB-OneTable |
 | --- | --- | --- | --- | --- |
-| **Single Item Requests** | ❌ | 🟡 | ✅ | 🟡 |
-| **Queries & Scans** | ❌ | 🟡 | ✅ | 🟡 |
-| **Conditions** | ✅ | 🟡 Not intuitive | ✅ | ❌ |
-| **Filters** | ✅ | 🟡 | ✅ | ❌ |
-| **Efficiency** | ✅ | 🟡 | ✅ | ❌ |
+| **Single Item Requests** | 🟡 Clunky | ✅ | ✅ | 🟡 Hard to override an existing item (`PUT`) |
+| **Updates** | 🟡 Clunky | 🟡 Operations (`$delete`, `$add`...) mixed with attributes | ✅ | 🟡 Operations (`delete`, `add`...) are far from attributes (in `options`) |
+| **Queries** | ❌ Uses only FilterExpression | 🟡 Confusing query formalism | ✅ | ✅ |
+| **Conditions & filters** | 🟡 Verbose, ORM-ish | 🟡 Confusing `OR` clauses | 🟡 Easy to use but incomplete (e.g. `AND`/`OR` clauses) | ❌ String template 🙄 |
 
-ElectroDB has a better API for querying, name your indexes with business sense
+If the previous section wasn't enough, this one should convince you NOT to use Dynamoose: I found it hard to believe, but it doesn't even support basic (efficient) queries, and uses only filter expressions under the hood 🙄.
 
-```tsx
-const movies = await Movie.query.byType({ type: 'horror' }).go();
-```
-
-`Dynamodb-toolbox`
-
-```tsx
-const { Item } = await PokemonInstanceEntity.get(pokemonMasterId, {
-  index: 'GSI', // <= Technical index name, really clear
-});
-```
+That being said, ElectroDB has a the nicest API. I especially liked the possibility to [name queries according to their business meaning](https://electrodb.dev/en/queries/query/), but not the `find` and `match` methods, which are not native DynamoDB requests and can build costly and inefficient `scan` requests without you being aware.
 
 ## Conclusion
 
@@ -198,7 +192,5 @@ That being said, there are some parts to improve:
 - Type inference still has some blind spots
 - There's no support for polymorphism
 - Entity definition autocompletion could be more helpful (it would benefit from a [zod-like approach](https://github.com/colinhacks/zod))
-
-Also, I’m not a fan of the `find` and `match` methods it exposes, which are not native DynamoDB requests and can build costly and inefficient `scan` requests without you being aware. Otherwise, it is a good match!
 
 Finally, **I would not rule out DynamoDB-Toolbox just yet!** Its next major is just around the corner, with many new capabilities that even ElectroDB doesn’t have (such as type-safe dependent defaults and polymorphism). So expect a round 2 of this article in the next few months… 😉
