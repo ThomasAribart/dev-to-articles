@@ -1,9 +1,9 @@
 ---
-published: false
+published: true
 title: An in-depth comparison of the most popular DynamoDB wrappers
 cover_image: https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/an-in-depth-comparison-of-the-most-popular-dynamodb-wrappers/an-in-depth-comparison-of-the-most-popular-dynamodb-wrappers-2.png
-description: An in-depth comparison of the 4 most popular wrappers for the DynamoDB Client in Typescript. Which one should you chose?
-tags: Typescript, DynamoDB, Wrapper, Serverless
+description: An in-depth comparison of the 4 most popular wrappers for the AWS DynamoDB Client in Typescript. Which one should you chose?
+tags: Typescript, DynamoDB, AWS, Serverless
 series:
 canonical_url:
 ---
