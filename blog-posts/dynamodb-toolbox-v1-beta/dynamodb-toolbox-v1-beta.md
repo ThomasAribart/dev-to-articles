@@ -8,6 +8,8 @@ series:
 canonical_url:
 ---
 
+Hello world!
+
 At [Kumo](https://dev.to/kumo), we are a big fan of Jeremy Daly’s [DynamoDB-Toolbox](https://github.com/jeremydaly/dynamodb-toolbox). We started using it as early as 2019. We grew fond of it... but were also too well aware of its flaws 😅
 
 One of them was that it was originally coded in JavaScript. Although Jeremy’s migrated the source code to TypeScript in 2020, it was limited to the base interface. It didn't handle type inference, a feature that I came to implement myself in the [v0.4]().
