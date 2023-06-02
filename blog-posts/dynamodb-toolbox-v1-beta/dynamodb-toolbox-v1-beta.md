@@ -38,14 +38,14 @@ This article will guide you as to how the new API works, as well as the main bre
   - [Schema definition](#schema-definition)
   - [Attributes types](#attributes-types)
     - [`any`](#any)
-    - [Primitives](#primitives)
+    - [`<primitive>`](#primitives)
     - [`set`](#set)
     - [`list`](#list)
     - [`map`](#map)
     - [`record`](#record)
-    - [`anyOf`](#anyOf)
+    - [`anyOf`](#anyof)
     - [Looking forward](#looking-forward)
-  - [Computed defaults](#computed-defaults)
+- [Computed defaults](#computed-defaults)
 - [Commands](#commands)
   - [`PutItemCommand`](#putitemcommand)
   - [`GetItemCommand`](#getitemcommand)
@@ -233,7 +233,7 @@ const pokemonEntity = new EntityV2({
 });
 ```
 
-### `SavedItem` and `FormattedItem`
+### SavedItem and FormattedItem
 
 If you feel lost, you can always use the `SavedItem` and `FormattedItem` utility type to infer the type of your entity items:
 
