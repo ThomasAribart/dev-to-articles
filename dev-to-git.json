@@ -6,5 +6,9 @@
   {
     "id": 1387220,
     "relativePathToArticle": "./blog-posts/an-in-depth-comparison-of-the-most-popular-dynamodb-wrappers/an-in-depth-comparison-of-the-most-popular-dynamodb-wrappers.md"
+  },
+  {
+    "id": 1489344,
+    "relativePathToArticle": "./blog-posts/dynamodb-toolbox-v1-beta/dynamodb-toolbox-v1-beta.md"
   }
 ]
