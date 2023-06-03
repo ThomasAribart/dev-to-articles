@@ -128,7 +128,7 @@ The table name can be provided with a getter. This can be useful in environments
 ```tsx
 const MyTable = new TableV2({
   ...
-  // 👇 Only be executed at command execution
+  // 👇 Only executed at command execution
   name: () => process.env.TABLE_NAME,
 });
 ```
@@ -342,7 +342,7 @@ All attributes share the following options:
 - `required` _(string?="atLeastOnce")_ Tag a root attribute or Map sub-attribute as **required**. Possible values are:
   - `"atLeastOnce"` Required in `PutItem` commands
   - `"never"`: Optional in all commands
-  - `"always"`: Required in `PutItem` and `GetItem` commands
+  - `"always"`: Required in `PutItem`, `GetItem` and `DeleteItem` commands
 
 ```tsx
 // Equivalent
@@ -377,7 +377,7 @@ const pokemonName = string().key();
 const pokemonName = string({ key: true });
 ```
 
-- `savedAs` _(string)_ Previously known as `map`. Rename a root or Map sub-attribute before sending write commands:
+- `savedAs` _(string)_ Previously known as `map`. Rename a root or Map sub-attribute before sending commands:
 
 ```tsx
 const pokemonName = string().savedAs('_n');
@@ -414,32 +414,32 @@ You can provide default values through the `default` option or method:
 ```tsx
 const metadata = any().default({ any: "value" });
 const metadata = any({
-  default: () => "Getters also work!"
+  default: () => "Getters also work!",
 });
 ```
 
 #### Primitives
 
-Define a `string`, `number`, `boolean` or `binary` attribute:
+Defines a `string`, `number`, `boolean` or `binary` attribute:
 
 ```tsx
 import { string, number, boolean, binary } from 'dynamodb-toolbox';
 
 const pokemonSchema: schema({
   ...
-	pokemonType: string(),
-	level: number(),
-	isLegendary: boolean(),
-	binEncoded: binary(),
+  pokemonType: string(),
+  level: number(),
+  isLegendary: boolean(),
+  binEncoded: binary(),
 });
 
 type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // => {
-//		...
-//		pokemonType: string
-//		level: number
-//		isLegendary: boolean
-//		binEncoded: Buffer
+//   ...
+//   pokemonType: string
+//   level: number
+//   isLegendary: boolean
+//   binEncoded: Buffer
 //	}
 ```
 
@@ -550,12 +550,12 @@ As in sets and lists, options can be povided as a 2nd argument.
 
 #### Record
 
-A new attribute type that translates to `Partial<Record<KeyType, ValueType>>` in TypeScript. Records differ from maps as they can accept an indefinite number of key-value pairs:
+A new attribute type that translates to `Partial<Record<KeyType, ValueType>>` in TypeScript. Records differ from maps as they can accept an infinite range of keys:
 
 ```tsx
 import { record } from 'dynamodb-toolbox';
 
-const pokemonType = string().enum(...)
+const pokemonType = string().enum(...);
 
 const pokemonSchema = schema({
   ...
@@ -595,7 +595,7 @@ const pokemonSchema = schema({
 });
 ```
 
-In this particular case, an `enum` would have done the trick. However, `anyOf` becomes particularly powerful when used in conjunction with `map` and `enum` or `const` directives of a primitive attribute, to implement **polymorphism**:
+In this particular case, an `enum` would have done the trick. However, `anyOf` becomes particularly powerful when used in conjunction with a `map` and the `enum` or `const` directives of a primitive attribute, to implement **polymorphism**:
 
 ```tsx
 const pokemonSchema = schema({
@@ -634,17 +634,17 @@ However, it was just impossible to type correctly in TypeScript:
 ```tsx
 const pokemonSchema = schema({
   ...
-	level: number(),
-	levelPlusOne: number().default(
-		// ❌ No way to retrieve the caller context
-		input => input.level + 1
+  level: number(),
+  levelPlusOne: number().default(
+    // ❌ No way to retrieve the caller context
+    input => input.level + 1
   ),
 });
 ```
 
 It means the `input` was typed as any and it fell to the developper to type it correctly, which just didn’t cut it for me.
 
-The solution I committed to was to split dependent defaults declaration into 2 steps:
+The solution I committed to was to split computed defaults declaration into 2 steps:
 
 - First, **declare that an attribute default should be derived from other attributes**:
 
@@ -659,7 +659,7 @@ const pokemonSchema = schema({
 ```
 
 <aside style="font-size: medium;">
-💡 *`ComputedDefault` is a JavaScript [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) (*TLDR: A sort of unique and custom `null`*), so it cannot possibly conflict with an actual desired default value.*
+💡 *`ComputedDefault` is a JavaScript [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) (TLDR: A sort of unique and custom `null`), so it cannot possibly conflict with an actual desired default value.*
 
 </aside>
 
@@ -682,29 +682,29 @@ const pokemonSchema = schema({
   ...
   defaultLevel: number(),
 	// 👇 Defaulted Map attribute
-	levelHistory: map({
+  levelHistory: map({
     currentLevel: number(),
-		// 👇 Defaulted sub-attribute
-		nextLevel: number().default(ComputedDefault),
-	}).default(ComputedDefault),
+    // 👇 Defaulted sub-attribute
+    nextLevel: number().default(ComputedDefault),
+  }).default(ComputedDefault),
 });
 
 const pokemonEntity = new EntityV2({
   ...
-	schema: pokemonSchema,
+  schema: pokemonSchema,
   computeDefaults: {
-		levelHistory: {
+    levelHistory: {
       // Defaulted value of Map attribute
       _map: (item) => ({
         currentLevel: item.defaultLevel,
         nextLevel: item.defaultLevel,
       }),
-			_attributes: {
-		   // Defaulted value of sub-attribute
-				nextLevel: (levelHistory, item) => levelHistory.currentLevel + 1,
-			}
-    }
-	}
+      _attributes: {
+        // Defaulted value of sub-attribute
+        nextLevel: (levelHistory, item) => levelHistory.currentLevel + 1,
+      },
+    },
+  },
 });
 ```
 
@@ -742,7 +742,7 @@ const params = command.params();
 const response = await command.send();
 ```
 
-Note that `pokemonItem`, can be provided later or edited, which can be useful if the command is built in several steps (at execution, an error will be thrown if no item has been provided):
+`pokemonItem` can be provided later or edited, which can be useful if the command is built in several steps (at execution, an error will be thrown if no item has been provided):
 
 ```tsx
 import { PutItemCommand } from 'dynamodb-toolbox';
@@ -753,7 +753,10 @@ const incompleteCommand = new PutItemCommand(pokemonEntity);
 const completeCommand = incompleteCommand.item(pokemonItem);
 
 // (can be chained by design)
-const response = incompleteCommand.item(pokemonItem).options(options).send();
+const response = await incompleteCommand
+  .item(pokemonItem)
+  .options(options)
+  .send();
 ```
 
 You can also use the `.build` method of the entity to craft a command directly hydrated with your entity:
@@ -774,32 +777,32 @@ const response = await pokemonEntity
 
 ### PutItemCommand
 
-The `capacity`, `metrics` and `returnValues` options behave exactly the same as in previous versions. The `condition` option benefit from improved typing, and clearer logical combinations:
+The `capacity`, `metrics` and `returnValues` options behave exactly the same as in previous versions. The `condition` option benefits from improved typing, and clearer logical combinations:
 
 ```tsx
 import { PutItemCommand } from 'dynamodb-toolbox';
 
 const { Attributes } = await pokemonEntity.build(PutItemCommand)
-	.item(pokemonItem)
-	.options({
+  .item(pokemonItem)
+  .options({
     capacity: "TOTAL",
-		metrics: "SIZE",
-		// 👇 Will type the response `Attributes`
-		returnValues: "ALL_OLD",
+    metrics: "SIZE",
+    // 👇 Will type the response `Attributes`
+    returnValues: "ALL_OLD",
     condition: {
       or: [
-				{ attr: "pokemonId", exists: false },
-				// 🙌 "lte" is correcly typed
-				{ attr: "level", lte: 99 },
-				// 🙌 You can nest logical combinations
-				{ and: [{ not: { ... } }, ...] }
-			]
+        { attr: "pokemonId", exists: false },
+        // 🙌 "lte" is correcly typed
+        { attr: "level", lte: 99 },
+        // 🙌 You can nest logical combinations
+        { and: [{ not: { ... } }, ...] }
+      ],
     },
   }).send();
 ```
 
 <aside style="font-size: medium;">
-❗️*The ˋ"UPDATED_OLD"` and ˋ"UPDATED_NEW"` return values options are not fully supported yet so I do not recommend using them for now*
+❗️*The `"UPDATED_OLD"` and `"UPDATED_NEW"` return values options are not fully supported yet so I do not recommend using them for now*
 
 </aside>
 
