@@ -808,7 +808,7 @@ const { Attributes } = await pokemonEntity.build(PutItemCommand)
 
 ### GetItemCommand
 
-The `attributes` behaves the same as in previous versions, but benefits from improved typing as well:
+The `attributes` option behaves the same as in previous versions, but benefits from improved typing as well:
 
 ```tsx
 import { GetItemCommand } from 'dynamodb-toolbox';
@@ -827,7 +827,7 @@ const { Item } = await pokemonEntity
 
 ### DeleteItemCommand
 
-The ˋDeleteItem` command is pretty much a mix between the two previous ones:
+The `DeleteItem` command is pretty much a mix between the two previous ones:
 
 ```tsx
 import { DeleteItemCommand } from 'dynamodb-toolbox';
