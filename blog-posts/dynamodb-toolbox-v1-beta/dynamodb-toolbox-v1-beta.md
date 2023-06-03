@@ -64,7 +64,7 @@ Let's dive in!
 
 ## Installation
 
-```bash
+```sh
 ### npm
 npm i dynamodb-toolbox@1.0.0-beta.0
 
@@ -81,7 +81,7 @@ yarn add dynamodb-toolbox@1.0.0-beta.0
 
 The `v1` is built on top the `v3` of the AWS SDK. It has `@aws-sdk/client-dynamodb` and `@aws-sdk/lib-dynamodb` as peer dependencies so you’ll have to install them as well:
 
-```bash
+```sh
 ## npm
 npm i @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
 
