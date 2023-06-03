@@ -149,14 +149,14 @@ For Entities, the main change is that the `attributes` argument becomes `schema`
 
 ```tsx
 // Will be renamed Entity in the official release 😉
-import { EntityV2, schema } from "dynamodb-toolbox"
+import { EntityV2, schema } from 'dynamodb-toolbox';
 
 const myEntity = new EntityV2({
   name: "MyEntity",
   table: myTable,
   // Attributes definition
   schema: schema({ ... })
-})
+});
 ```
 
 ### Timestamps
@@ -413,10 +413,10 @@ You can provide default values through the `default` option or method:
 
 ```tsx
 const metadata = any()
-  .default({ any: "value" })
+  .default({ any: "value" });
 const metadata = any({
   default: () => "Getters also work!"
-})
+});
 ```
 
 #### Primitives
@@ -424,7 +424,7 @@ const metadata = any({
 Define a `string`, `number`, `boolean` or `binary` attribute:
 
 ```tsx
-import { string, number, boolean, binary } from "dynamodb-toolbox"
+import { string, number, boolean, binary } from 'dynamodb-toolbox';
 
 const pokemonSchema: schema({
   ...
@@ -432,9 +432,9 @@ const pokemonSchema: schema({
 	level: number(),
 	isLegendary: boolean(),
 	binEncoded: binary(),
-})
+});
 
-type FormattedPokemon = FormattedItem<typeof pokemonEntity>
+type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // => {
 //		...
 //		pokemonType: string
@@ -449,16 +449,16 @@ You can provide default values through the `default` option or method:
 ```tsx
 // 🙌 Correctly typed!
 const level = number()
-  .default(42)
+  .default(42);
 const date = string()
-  .default(() => new Date().toISOString())
+  .default(() => new Date().toISOString());
 
 const level = number({
   default: 42
-})
+});
 const date = string({
   default: () => new Date().toISOString()
-})
+});
 ```
 
 Primitive types have an additional `enum` option. For instance, you could provide a finite list of pokemon types:
@@ -498,11 +498,11 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 Options can be provided as a 2nd argument:
 
 ```tsx
-const setAttr = set(string()).hidden()
+const setAttr = set(string()).hidden();
 const setAttr = set(
   string(),
   { hidden: true }
-)
+);
 ```
 
 #### List
@@ -587,12 +587,12 @@ Options can be provided as a 3rd argument:
 const recordAttr = record(
   string(),
   number()
-).hidden()
+).hidden();
 const recordAttr = record(
   string(),
   number(),
   { hidden: true }
-)
+);
 ```
 
 #### AnyOf
@@ -656,7 +656,7 @@ const pokemonSchema = schema({
 		// ❌ No way to retrieve the caller context
 		input => input.level + 1
   )
-})
+});
 ```
 
 It means the `input` was typed as any and it fell to the developper to type it correctly, which just didn’t cut it for me.
@@ -669,7 +669,7 @@ The solution I committed to was to split dependent defaults declaration into 2 s
 import { ComputedDefault } from 'dynamodb-toolbox';
 
 const pokemonSchema = schema({
-  // ...
+  ...
   level: number(),
   levelPlusOne: number().default(ComputedDefault),
 });
@@ -695,7 +695,6 @@ const pokemonEntity = new EntityV2({
 In the tricky case of nested attributes, `computeDefaults` becomes an object with an `_attributes` or `_elements` property to emphasize that the computing is **local**:
 
 ```tsx
-
 const pokemonSchema = schema({
   ...
   defaultLevel: number(),
@@ -705,7 +704,7 @@ const pokemonSchema = schema({
 		// 👇 Defaulted sub-attribute
 		nextLevel: number().default(ComputedDefault)
 	}).default(ComputedDefault),
-})
+});
 
 const pokemonEntity = new EntityV2({
   ...
@@ -721,8 +720,9 @@ const pokemonEntity = new EntityV2({
 		   // Defaulted value of sub-attribute
 				nextLevel: (levelHistory, item) => levelHistory.currentLevel + 1,
 			},
+    },
 	}
-})
+});
 ```
 
 Note that there is (and has always been) an ambiguity as to when `default` values are actually used, that I hope to solve soon by splitting it into `getDefault`, `putDefault`, `updateDefault` and so on (`default` being the one to rule them all). For the moment, **`defaults` are only used in `putItem` commands.**
@@ -794,7 +794,7 @@ const response = await pokemonEntity
 The `capacity`, `metrics` and `returnValues` options behave exactly the same as in previous versions. The `condition` option benefit from improved typing, and clearer logical combinations:
 
 ```tsx
-import { PutItemCommand } from "dynamodb-toolbox"
+import { PutItemCommand } from 'dynamodb-toolbox';
 
 const { Attributes } = await pokemonEntity.build(PutItemCommand)
 	.item(pokemonItem)
@@ -812,7 +812,7 @@ const { Attributes } = await pokemonEntity.build(PutItemCommand)
 				{ and: [{ not: { ... } }, ...] }
 			]
     },
-  }).send()
+  }).send();
 ```
 
 <aside style="font-size: medium;">
@@ -844,7 +844,7 @@ const { Item } = await pokemonEntity
 The ˋDeleteItem` command is pretty much a mix between the two previous ones:
 
 ```tsx
-import { DeleteItemCommand } from "dynamodb-toolbox"
+import { DeleteItemCommand } from 'dynamodb-toolbox';
 
 const { Attributes } = await pokemonEntity.build(DeleteItemCommand)
 	.key(pokemonKey)
@@ -859,7 +859,7 @@ const { Attributes } = await pokemonEntity.build(DeleteItemCommand)
 				...
 			]
     },
-  }).send()
+  }).send();
 ```
 
 ## Utility helpers and types
@@ -871,7 +871,7 @@ In addition to the `SavedItem` and `FormattedItem` types, the `v1` exposes a bun
 `formatSavedItem` transforms a saved item returned by the DynamoDB client to it’s formatted counterpart:
 
 ```tsx
-import { formatSavedItem } from "dynamodb-toolbox"
+import { formatSavedItem } from 'dynamodb-toolbox';
 
 // 🙌 Typed as FormattedItem<typeof pokemonEntity>
 const formattedPokemon = formatSavedItem(
@@ -879,7 +879,7 @@ const formattedPokemon = formatSavedItem(
 	savedPokemon,
 	// As in GetItem commands, attributes will filter the formatted item
 	{ attributes: [...] }
-)
+);
 ```
 
 Note that **it is a parsing operation**, i.e. it does not require the item to be typed as `SavedItem<typeof myEntity>`, but will throw an error if the saved item is invalid:
@@ -888,7 +888,7 @@ Note that **it is a parsing operation**, i.e. it does not require the item to be
 const formattedPokemon = formatSavedItem(
 	pokemonEntity,
 	{ level: "not a number", ... },
-)
+);
 // ❌ Will throw:
 // => "Invalid attribute in saved item: level. Should be a number"
 ```
@@ -905,7 +905,10 @@ const condition: Condition<typeof pokemonEntity> = {
   lte: 42,
 };
 
-const parsedCondition = parseCondition(pokemonEntity, condition);
+const parsedCondition = parseCondition(
+  pokemonEntity,
+  condition
+);
 // => {
 //	ConditionExpression: "#1 <= :1",
 //	ExpressionAttributeNames: { "#1": "level" },
@@ -925,7 +928,10 @@ const attributes: AnyAttributePath<typeof pokemonEntity>[] = [
   'levelHistory.currentLevel',
 ];
 
-const parsedCondition = parseProjection(pokemonEntity, attributes);
+const parsedCondition = parseProjection(
+  pokemonEntity,
+  attributes
+);
 // => {
 //	ProjectionExpression: '#1, #2.#3',
 //	ExpressionAttributeNames: {
@@ -965,7 +971,7 @@ await pokemonEntity
 Some `DynamoDBToolboxErrors` also expose a `path` property (mostly in validations) and/or a `payload` property for additional context. If you need to handle them, TypeScript is your best friend, as the `code` property will correctly discriminate the `DynamoDBToolboxError` type:
 
 ```tsx
-import { DynamoDBToolboxError } from "dynamodb-toolbox"
+import { DynamoDBToolboxError } from "dynamodb-toolbox";
 
 const handleError = (error: Error) => {
   if (!error instanceof DynamoDBToolboxError) throw error;
