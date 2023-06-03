@@ -384,7 +384,7 @@ const pokemonName = string().savedAs('_n');
 const pokemonName = string({ savedAs: '_n' });
 ```
 
-- `default`: _[TO FINISH]_ Most attribute types expose a `default` option… Although only primitives … Let me know if you need it.
+- `default`: _(ComputedDefault)_ See [Computed defaults](#computed-defaults)
 
 ### Attributes types
 
@@ -392,13 +392,13 @@ Here’s the exhaustive list of available attribute types:
 
 #### Any
 
-Define an attribute of any value. No validation will be applied at runtime, and its type will be resolved as `unknown`.
+Define an attribute of any value. No validation will be applied at runtime, and its type will be resolved as `unknown`:
 
 ```tsx
 import { any } from 'dynamodb-toolbox';
 
 const pokemonSchema = schema({
-  // ...
+  ...
   metadata: any(),
 });
 
@@ -409,15 +409,25 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 //	}
 ```
 
+You can provide default values through the `default` option or method:
+
+```tsx
+const metadata = any()
+  .default({ any: "value" })
+const metadata = any({
+  default: () => "Getters also work!"
+})
+```
+
 #### Primitives
 
-Define a `string`, `number`, `boolean` or `binary` attribute.
+Define a `string`, `number`, `boolean` or `binary` attribute:
 
 ```tsx
 import { string, number, boolean, binary } from "dynamodb-toolbox"
 
 const pokemonSchema: schema({
-	// ...
+  ...
 	pokemonType: string(),
 	level: number(),
 	isLegendary: boolean(),
@@ -434,31 +444,47 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>
 //	}
 ```
 
-Primitive types have an additional `enum` option. For instance, you could define the `pokemonType`:
+You can also provide default values through the `default` option or method:
 
 ```tsx
-import { string } from 'dynamodb-toolbox';
+// 🙌 Correctly typed!
+const level = number()
+  .default(42)
+const date = string()
+  .default(() => new Date().toISOString())
 
-const pokemonTypeAttribute = string().enum('fire', 'grass', 'water');
+const level = number({
+  default: 42
+})
+const date = string({
+  default: () => new Date().toISOString()
+})
+```
 
-// `.const("POKEMON")` is a shorthand for `.enum("POKEMON").default("POKEMON")`
+Primitive types have an additional `enum` option. For instance, you could provide a finite list of pokemon types:
+
+```tsx
+const pokemonTypeAttribute = string()
+  .enum('fire', 'grass', 'water');
+
+// Shorthand for `.enum("POKEMON").default("POKEMON")`
 const pokemonPartitionKey = string().const('POKEMON');
 ```
 
-<aside>
-💡 *For type inference reasons the `enum` options in primitives is only available as method, not as an option object
+<aside style="font-size: medium;">
+💡 *For type inference reasons, the `enum` option is only available as a method, not as an object option
 
 </aside>
 
 #### Set
 
-Defines a set of strings, numbers or binaries:
+Defines a set of strings, numbers or binaries. Unlike in previous versions, sets are kept as `Set` classes. Let me know if you would prefer using arrays (or being able to chose from both):
 
 ```tsx
 import { set } from 'dynamodb-toolbox';
 
 const pokemonSchema = schema({
-  // ...
+  ...
   skills: set(string()),
 });
 
@@ -469,7 +495,15 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 //	}
 ```
 
-Unlike in the previous versions, sets are kept as `Set` classes. Let me know if you would rather use `Array` or to be able to chose from both.
+Options can be provided as a 2nd argument:
+
+```tsx
+const setAttr = set(string()).hidden()
+const setAttr = set(
+  string(),
+  { hidden: true }
+)
+```
 
 #### List
 
@@ -479,7 +513,7 @@ Defines a list of sub-schemas of any type:
 import { list } from 'dynamodb-toolbox';
 
 const pokemonSchema = schema({
-  // ...
+  ...
   skills: list(string()),
 });
 
@@ -490,14 +524,17 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 //	}
 ```
 
+As in sets, options can be povided as a 2nd argument.
+
 #### Map
 
-Defines a finite list key-value pairs. As for Lists, Map attributes are (finally!) recursive without any limitation of level. Leverage of recursive typing:
+Defines a finite list of key / sub-schema of any type pairs:
 
 ```tsx
 import { map } from 'dynamodb-toolbox';
 
 const pokemonSchema = schema({
+  ...
   nestedMagic: map({
     will: map({
       work: string().const('!'),
@@ -516,12 +553,46 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 //	}
 ```
 
+As in sets and lists, options can be povided as a 2nd argument.
+
 #### Record
 
-A new attribute type that translates to `Partial<Record<KeyType, ValueType>>` in TypeScript. _[TO FINISH]_ Partial, accept an indefinite number of properties:
+A new attribute type that translates to `Partial<Record<KeyType, ValueType>>` in TypeScript. Records differ from maps as they can accept an indefinite number of key-value pairs:
 
 ```tsx
-const .. = record(string().enum("foo", "bar"), number())
+import { record } from 'dynamodb-toolbox';
+
+const pokemonType = string().enum(...)
+
+const pokemonSchema = schema({
+  ...
+  weaknessesByPokemonType: record(
+    pokemonType,
+    number()
+  }),
+});
+
+type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
+// => {
+//		...
+//		weaknessesByPokemonType: {
+//      [key in PokemonType]?: number
+//		}
+//	}
+```
+
+Options can be provided as a 3rd argument:
+
+```tsx
+const recordAttr = record(
+  string(),
+  number()
+).hidden()
+const recordAttr = record(
+  string(),
+  number(),
+  { hidden: true }
+)
 ```
 
 #### AnyOf
@@ -563,9 +634,13 @@ type CaptureState = FormattedItem<typeof pokemonEntity>['captureState'];
 //  | { status: "catched", trainerId: string }
 ```
 
+As in sets, lists and maps, options can be povided as a 2nd argument.
+
 #### Looking forward
 
-That’s all for now! I’m planning to include new `tuple` and `allOf` attributes someday. Let me know if this would be a feature you’d need!
+That’s all for now! I’m planning to include new `tuple` and `allOf` attributes someday.
+
+If there are other types you’d like to see, comment this article and/or [open a discussion on the official repo](https://github.com/jeremydaly/dynamodb-toolbox) with the `v1` label 👍
 
 ## Computed defaults
 
