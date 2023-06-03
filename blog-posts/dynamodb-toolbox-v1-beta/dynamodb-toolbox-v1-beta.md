@@ -901,7 +901,7 @@ const parsedCondition = parseCondition(pokemonEntity, condition);
 
 ### Projection and parseProjection
 
-The `AnyAttributePath` type and `parseProjection` util are useful to type attributes paths and build projection expressions:
+The `AnyAttributePath` type and `parseProjection` util are useful to type attribute paths and build projection expressions:
 
 ```tsx
 import { AnyAttributePath, parseProjection } from 'dynamodb-toolbox';
@@ -924,7 +924,7 @@ const parsedCondition = parseProjection(pokemonEntity, attributes);
 
 ### KeyInput and PrimaryKey
 
-Both types are useful to type items primary keys:
+Both types are useful to type item primary keys:
 
 ```tsx
 import type { KeyInput, PrimaryKey } from 'dynamodb-toolbox';
@@ -959,15 +959,15 @@ const handleError = (error: Error) => {
   switch (error.code) {
     case "parsing.invalidAttributeInput":
       const path = error.path;
-			 // => "level"
+      // => "level"
       const payload = error.payload;
-			// => { received: "not a number", expected: "number" }
-			break
-	    ...
+      // => { received: "not a number", expected: "number" }
+      break
+      ...
     case "entity.invalidItemSchema":
       const path = error.path; // ❌ error does not have path property
-			const payload = error.payload; // ❌ same goes with payload
-	    ...
+      const payload = error.payload; // ❌ same goes with payload
+      ...
   }
 }
 ```
