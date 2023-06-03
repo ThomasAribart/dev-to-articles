@@ -732,7 +732,7 @@ Note that there is (and has always been) an ambiguity as to when `default` value
 Now that we know how to design entities, let’s take a look at how we can leverage them to craft commands 👍
 
 <aside>
-💡 *As stated in the intro, the beta only support the `PutItem`, `GetItem`, and `DeleteItem` commands. If you need to run `UpdateItem`, `Query` or `Scan` commands, our advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem).*
+💡 *The beta only support the `PutItem`, `GetItem`, and `DeleteItem` commands. If you need to run `UpdateItem`, `Query` or `Scan` commands, our advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem).*
 
 </aside>
 
@@ -747,6 +747,7 @@ import { PutItemCommand } from 'dynamodb-toolbox';
 
 const command = new PutItemCommand(
   pokemonEntity,
+  // 🙌 Correctly typed!
   pokemonItem,
   // 👇 Optional
   putItemOptions,
@@ -790,7 +791,7 @@ const response = await pokemonEntity
 
 ### PutItemCommand
 
-_[TO FINISH]_ The `capacity`, `metrics` and `returnValues` options behave exactly the same as in the previous versions. The `condition` option benefit from improved typing, and clearer logical combinations:
+The `capacity`, `metrics` and `returnValues` options behave exactly the same as in previous versions. The `condition` option benefit from improved typing, and clearer logical combinations:
 
 ```tsx
 import { PutItemCommand } from "dynamodb-toolbox"
@@ -814,16 +815,21 @@ const { Attributes } = await pokemonEntity.build(PutItemCommand)
   }).send()
 ```
 
+<aside style="font-size: medium;">
+❗️*The ˋ"UPDATED_OLD"` and ˋ"UPDATED_NEW"` return values options are not fully supported yet so I do not recommend using them for now*
+
+</aside>
+
 ### GetItemCommand
 
-_[TO FINISH]_ Only key attributes are to be provided, and you can use `attributes` (with improved typing as well)
+The `attributes` behaves the same as in previous versions, but benefits from improved typing as well:
 
 ```tsx
 import { GetItemCommand } from 'dynamodb-toolbox';
 
 const { Item } = await pokemonEntity
   .build(GetItemCommand)
-  .key({ pokemonClass: 'pikachu', pokemonId: '123' })
+  .key(pokemonKey)
   .options({
     capacity: 'TOTAL',
     consistent: true,
@@ -835,13 +841,13 @@ const { Item } = await pokemonEntity
 
 ### DeleteItemCommand
 
-_[TO FINISH]_ Similar to deleteItem (only key attributes have to be provided), and `getItem` (supports conditions)
+The ˋDeleteItem` command is pretty much a mix between the two previous ones:
 
 ```tsx
 import { DeleteItemCommand } from "dynamodb-toolbox"
 
 const { Attributes } = await pokemonEntity.build(DeleteItemCommand)
-	.key({ pokemonClass: "pikachu", pokemonId: "123" })
+	.key(pokemonKey)
 	.options({
     capacity: "TOTAL",
 		metrics: "SIZE",
@@ -858,11 +864,11 @@ const { Attributes } = await pokemonEntity.build(DeleteItemCommand)
 
 ## Utility helpers and types
 
-Beside of `SavedItem` and `FormattedItem`:
+In addition to the `SavedItem` and `FormattedItem` types, the `v1` exposes a bunch of useful helpers and utility types:
 
 ### formatSavedItem
 
-_[TO FINISH]_ `formatSavedItem` transforms a raw item returned by DynamoDB to it’s formatted counterpart:
+`formatSavedItem` transforms a saved item returned by the DynamoDB client to it’s formatted counterpart:
 
 ```tsx
 import { formatSavedItem } from "dynamodb-toolbox"
@@ -871,7 +877,7 @@ import { formatSavedItem } from "dynamodb-toolbox"
 const formattedPokemon = formatSavedItem(
 	pokemonEntity,
 	savedPokemon,
-	// As in GetItemCommand, attributes will filter the formatted item
+	// As in GetItem commands, attributes will filter the formatted item
 	{ attributes: [...] }
 )
 ```
@@ -889,7 +895,7 @@ const formattedPokemon = formatSavedItem(
 
 ### Condition and parseCondition
 
-_[TO FINISH]_
+The `Condition` type and ˋparseCondition` util are useful to type conditions and build condition expressions:
 
 ```tsx
 import { Condition, parseCondition } from 'dynamodb-toolbox';
@@ -909,7 +915,7 @@ const parsedCondition = parseCondition(pokemonEntity, condition);
 
 ### Projection and parseProjection
 
-_[TO FINISH]_
+The `AnyAttributePath` type and ˋparseProjection` util are useful to type attributes paths and build projection expressions:
 
 ```tsx
 import { AnyAttributePath, parseProjection } from 'dynamodb-toolbox';
@@ -932,7 +938,7 @@ const parsedCondition = parseProjection(pokemonEntity, attributes);
 
 ### KeyInput and PrimaryKey
 
-_[TO FINISH]_
+Both types are useful to type items primary keys:
 
 ```tsx
 import type { KeyInput, PrimaryKey } from 'dynamodb-toolbox';
@@ -984,6 +990,6 @@ const handleError = (error: Error) => {
 
 And that’s it for now! I hope you’re as excited as I am about this new release 🙌
 
-_[TO FINISH]_ If have features that I missed in mind, or if you would like to see some of the ones I mentioned prioritised, please comment this article and/or [create an issue or open a discussion on the official repo](https://github.com/jeremydaly/dynamodb-toolbox) with the `v1` label 👍
+If you have in mind features that I missed, or would like to see some of the ones I mentioned prioritised, please comment this article and/or [create an issue or open a discussion on the official repo](https://github.com/jeremydaly/dynamodb-toolbox) with the `v1` label 👍
 
 See you soon!
