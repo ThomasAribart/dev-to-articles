@@ -412,8 +412,7 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 You can provide default values through the `default` option or method:
 
 ```tsx
-const metadata = any()
-  .default({ any: "value" });
+const metadata = any().default({ any: "value" });
 const metadata = any({
   default: () => "Getters also work!"
 });
@@ -448,14 +447,11 @@ You can provide default values through the `default` option or method:
 
 ```tsx
 // 🙌 Correctly typed!
-const level = number()
-  .default(42);
+const level = number().default(42);
 const date = string()
   .default(() => new Date().toISOString());
 
-const level = number({
-  default: 42
-});
+const level = number({ default: 42 });
 const date = string({
   default: () => new Date().toISOString()
 });
@@ -499,10 +495,7 @@ Options can be provided as a 2nd argument:
 
 ```tsx
 const setAttr = set(string()).hidden();
-const setAttr = set(
-  string(),
-  { hidden: true }
-);
+const setAttr = set(string(), { hidden: true });
 ```
 
 #### List
@@ -566,10 +559,7 @@ const pokemonType = string().enum(...)
 
 const pokemonSchema = schema({
   ...
-  weaknessesByPokemonType: record(
-    pokemonType,
-    number()
-  }),
+  weaknessesByPokemonType: record(pokemonType, number()),
 });
 
 type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
@@ -584,15 +574,8 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 Options can be provided as a 3rd argument:
 
 ```tsx
-const recordAttr = record(
-  string(),
-  number()
-).hidden();
-const recordAttr = record(
-  string(),
-  number(),
-  { hidden: true }
-);
+const recordAttr = record(string(), number()).hidden();
+const recordAttr = record(string(), number(), { hidden: true });
 ```
 
 #### AnyOf
@@ -655,7 +638,7 @@ const pokemonSchema = schema({
 	levelPlusOne: number().default(
 		// ❌ No way to retrieve the caller context
 		input => input.level + 1
-  )
+  ),
 });
 ```
 
@@ -702,7 +685,7 @@ const pokemonSchema = schema({
 	levelHistory: map({
     currentLevel: number(),
 		// 👇 Defaulted sub-attribute
-		nextLevel: number().default(ComputedDefault)
+		nextLevel: number().default(ComputedDefault),
 	}).default(ComputedDefault),
 });
 
@@ -714,13 +697,13 @@ const pokemonEntity = new EntityV2({
       // Defaulted value of Map attribute
       _map: (item) => ({
         currentLevel: item.defaultLevel,
-        nextLevel: item.defaultLevel
+        nextLevel: item.defaultLevel,
       }),
 			_attributes: {
 		   // Defaulted value of sub-attribute
 				nextLevel: (levelHistory, item) => levelHistory.currentLevel + 1,
-			},
-    },
+			}
+    }
 	}
 });
 ```
@@ -750,7 +733,7 @@ const command = new PutItemCommand(
   // 🙌 Correctly typed!
   pokemonItem,
   // 👇 Optional
-  putItemOptions,
+  putItemOptions
 );
 
 // Get command params
@@ -887,7 +870,7 @@ Note that **it is a parsing operation**, i.e. it does not require the item to be
 ```tsx
 const formattedPokemon = formatSavedItem(
 	pokemonEntity,
-	{ level: "not a number", ... },
+	{ level: "not a number", ... }
 );
 // ❌ Will throw:
 // => "Invalid attribute in saved item: level. Should be a number"
@@ -905,10 +888,7 @@ const condition: Condition<typeof pokemonEntity> = {
   lte: 42,
 };
 
-const parsedCondition = parseCondition(
-  pokemonEntity,
-  condition
-);
+const parsedCondition = parseCondition(pokemonEntity, condition);
 // => {
 //	ConditionExpression: "#1 <= :1",
 //	ExpressionAttributeNames: { "#1": "level" },
@@ -928,10 +908,7 @@ const attributes: AnyAttributePath<typeof pokemonEntity>[] = [
   'levelHistory.currentLevel',
 ];
 
-const parsedCondition = parseProjection(
-  pokemonEntity,
-  attributes
-);
+const parsedCondition = parseProjection(pokemonEntity, attributes);
 // => {
 //	ProjectionExpression: '#1, #2.#3',
 //	ExpressionAttributeNames: {
@@ -971,22 +948,22 @@ await pokemonEntity
 Some `DynamoDBToolboxErrors` also expose a `path` property (mostly in validations) and/or a `payload` property for additional context. If you need to handle them, TypeScript is your best friend, as the `code` property will correctly discriminate the `DynamoDBToolboxError` type:
 
 ```tsx
-import { DynamoDBToolboxError } from "dynamodb-toolbox";
+import { DynamoDBToolboxError } from 'dynamodb-toolbox';
 
 const handleError = (error: Error) => {
   if (!error instanceof DynamoDBToolboxError) throw error;
 
   switch (error.code) {
     case "parsing.invalidAttributeInput":
-      const path = error.path
+      const path = error.path;
 			 // => "level"
-      const payload = error.payload
+      const payload = error.payload;
 			// => { received: "not a number", expected: "number" }
 			break
 	    ...
     case "entity.invalidItemSchema":
-      const path = error.path // ❌ error does not have path property
-			const payload = error.payload // ❌ same goes with payload
+      const path = error.path; // ❌ error does not have path property
+			const payload = error.payload; // ❌ same goes with payload
 	    ...
   }
 }
