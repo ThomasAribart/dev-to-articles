@@ -8,15 +8,13 @@ series:
 canonical_url:
 ---
 
-Hello world!
-
 At [Kumo](https://dev.to/kumo), we are big fans of Jeremy Daly’s [DynamoDB-Toolbox](https://github.com/jeremydaly/dynamodb-toolbox). We started using it as early as 2019 and grew fond of it... but were also too well aware of its flaws 😅
 
 One of them was that it had originally been coded in JavaScript. Although Jeremy rewrote the source code in TypeScript in 2020, it didn't handle type inference, a feature that I eventually came to implement myself in the [v0.4](https://github.com/jeremydaly/dynamodb-toolbox/releases/tag/v0.4.0).
 
 However, there were still some features that we felt lacked: From declaring **ˋenums` on primitives**, to supporting **recursive schemas and types** (lists and maps sub-attributes) and even **polymorphism**.
 
-I was also wary of the object-oriented approach: I don’t have anything against classes, but they are not tree-shakable. Meaning that **they should be kept relatively light in a serverless context**. That’s what AWS went for with the [v3 of their SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/#usage), and for good reasons: Keep bundle tights!
+I was also wary of the object-oriented approach: I don’t have anything against classes, but they are not tree-shakable. Meaning that **they should be kept relatively light in a serverless context**. That’s what AWS went for with the [v3 of their SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/#usage), and for good reasons: Keep bundles tight!
 
 That just wasn't the case for DynamoDB-Toolbox: I remember working on an `.update` method that was more than 1000 lines long... But why bundle it when you don't even need it?
 
@@ -95,7 +93,7 @@ yarn add @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
 
 ## Tables
 
-Tables are defined pretty much the same way is in previous versions, but the key attributes now have a type along with their name:
+Tables are defined pretty much the same way as in previous versions, but the `key` attributes now have a ˋtypeˋ along with their ˋname`:
 
 ```tsx
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
@@ -125,7 +123,7 @@ const MyTable = new TableV2({
 
 </aside>
 
-The table name can be provided with a getter. This can useful in environments in which it is not actually available (such as tests or deployments):
+The table name can be provided with a getter. This can be useful in environments in which it is not actually available (e.g. tests or deployments):
 
 ```tsx
 const MyTable = new TableV2({
@@ -135,7 +133,7 @@ const MyTable = new TableV2({
 });
 ```
 
-As in previous versions, the `v1` classes tag your data with an entity identifier through an internal `entity` string attribute, saved as `"_et"` by default. This can be renamed at the `Table` level through the `entityAttributeSavedAs`:
+As in previous versions, the `v1` classes tag your data with an entity identifier through an internal `entity` string attribute, saved as `"_et"` by default. This can be renamed at the `Table` level through the `entityAttributeSavedAs` argument:
 
 ```tsx
 const MyTable = new TableV2({
@@ -156,7 +154,7 @@ import { EntityV2, schema } from "dynamodb-toolbox"
 const myEntity = new EntityV2({
   name: "MyEntity",
   table: myTable,
-  // Attribute definition
+  // Attributes definition
   schema: schema({ ... })
 })
 ```
@@ -204,7 +202,7 @@ const myEntity = new EntityV2({
 
 An important change from previous versions is that the `EntityV2` schema is validated against the `TableV2`, both in types and at runtime. There are two ways of matching the table schema:
 
-- The simplest one is to have an entity schema that **already matches the table schema** (see ["Designing Entity Schemas"](#designing-entity-schemas)). The Entity is then considered valid and no other argument is required:
+- The simplest one is to have an entity schema that **already matches the table schema** (see ["Designing Entity schemas"](#designing-entity-schemas)). The Entity is then considered valid and no other argument is required:
 
 ```tsx
 const pokemonEntity = new EntityV2({
@@ -241,7 +239,7 @@ const pokemonEntity = new EntityV2({
 
 ### SavedItem and FormattedItem
 
-If you feel lost, you can always use the `SavedItem` and `FormattedItem` utility type to infer the type of your entity items:
+If you feel lost, you can always use the `SavedItem` and `FormattedItem` utility types to infer the type of your entity items:
 
 ```tsx
 import type { FormattedItem, SavedItem } from 'dynamodb-toolbox';
@@ -292,7 +290,7 @@ Now let’s dive into the part that received the most significant overhaul: **Sc
 
 ### Schema definition
 
-Similarly to [zod](https://github.com/colinhacks/zod) or [yup](https://github.com/jquense/yup), attributes are now defined through function builders. For TS users, this removes the need for the `as const` statement previously needed for type inference (so don't forget to remove it when you migrate! 🙈).
+Similarly to [zod](https://github.com/colinhacks/zod) or [yup](https://github.com/jquense/yup), attributes are now defined through function builders. For TS users, this removes the need for the `as const` statement previously needed for type inference (so don't forget to remove it when you migrate 🙈).
 
 You can either import the attribute builders through their dedicated imports, or through the `attribute` or `attr` shorthands. For instance, those declarations will output the same attribute schema:
 
@@ -308,7 +306,7 @@ const pokemonName = attr.string();
 
 Prior to being wrapped in a `schema` declaration, attributes are called **warm:** They are **not validated** (at run-time) and can be used to build other schemas. By inspecting their types, you will see that they are prefixed with `$`. Once **frozen**, validation is applied and building methods are stripped:
 
-_TODO GIF OF SCREEN CAPTURE_
+_TODO: GIF OF SCREEN CAPTURE_
 
 The main takeaway is that **warm schemas can be composed** while **frozen schemas cannot**:
 
@@ -330,7 +328,7 @@ const pokedexSchema = schema({
 });
 ```
 
-You can create/update warm attributes by using dedicated methods or by providing an option object. The first method provides a **slick devX** with autocomplete and shorthands, while the second one theoretically requires **less compute time and memory usage**, although it should be very minor (validation being only applied on freeze):
+You can create/update warm attributes by using dedicated methods or by providing option objects. The former provides a **slick devX** with autocomplete and shorthands, while the latter theoretically requires **less compute time and memory usage**, although it should be very minor (validation being only applied on freeze):
 
 ```tsx
 // Using methods
@@ -341,10 +339,10 @@ const pokemonName = string({ required: 'always' });
 
 All attributes share the following options:
 
-- `required`: Tag a root attribute or Map sub-attribute as **required**. Possible values are:
-  - `"atLeastOnce"` _(default)_ Required in `PUT`s
-  - `"never"`: Optional in `PUT`s
-  - `"always"`: Required in `PUT`s and `GET`s
+- `required` _(string?="atLeastOnce")_ Tag a root attribute or Map sub-attribute as **required**. Possible values are:
+  - `"atLeastOnce"` Required in `PutItem` commands
+  - `"never"`: Optional in all commands
+  - `"always"`: Required in `PutItem` and ˋGetItem` commands
 
 ```tsx
 // Equivalent
@@ -358,19 +356,19 @@ const pokemonName = string({ required: 'never' });
 
 A very important breaking change from previous versions is that **root attributes and Map sub-attributes are now required by default**. This was made so **composition and validation work better together**.
 
-<aside>
-💡 *Outside of root attributes and Map sub-attributes, such as in a list of strings, it doesn’t make sense for sub-schemas to be optional. So, should string validation and type inference depend on the context (ignore `required` in Lists but not in Maps) OR force users to write `list(string().required())` every time? It felt more straightforward to enforce `string()` as required by default and prevent schemas such as `list(string().optional())`.*
+<aside style="font-size: medium;">
+💡 *Outside of root attributes and Map sub-attributes, such as in a list of strings, it doesn’t make sense for sub-schemas to be optional. So, should I force users to write `list(string().required())` every time OR make string validation and type inference aware of their context (ignore `required` in lists but not in maps)? It felt more elegant to enforce `string()` as required by default and prevent schemas such as `list(string().optional())`.*
 
 </aside>
 
-- `hidden`: Skip attribute when formatting the returned item of a command.
+- `hidden` _(boolean?=true)_ Skip attribute when formatting the returned item of a command:
 
 ```tsx
 const pokemonName = string().hidden();
 const pokemonName = string({ hidden: true });
 ```
 
-- `key`: Tag attribute as needed for computing the item primary key.
+- `key` _(boolean?=true)_ Tag attribute as needed to compute the primary key:
 
 ```tsx
 // Note: The method will also modify the `required` property to "always"
@@ -379,7 +377,7 @@ const pokemonName = string().key();
 const pokemonName = string({ key: true });
 ```
 
-- `savedAs`: (previously known as `map`) Rename a root or Map sub-attribute before sending write commands.
+- `savedAs` _(string)_ Previously known as `map`. Rename a root or Map sub-attribute before sending write commands:
 
 ```tsx
 const pokemonName = string().savedAs('_n');
@@ -390,7 +388,7 @@ const pokemonName = string({ savedAs: '_n' });
 
 ### Attributes types
 
-Here’s the list of available attribute types:
+Here’s the exhaustive list of available attribute types:
 
 #### Any
 
