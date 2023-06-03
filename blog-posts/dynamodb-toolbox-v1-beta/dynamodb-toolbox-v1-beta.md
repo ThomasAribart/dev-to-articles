@@ -10,25 +10,27 @@ canonical_url:
 
 Hello world!
 
-At [Kumo](https://dev.to/kumo), we are big fans of Jeremy Daly’s [DynamoDB-Toolbox](https://github.com/jeremydaly/dynamodb-toolbox). We started using it as early as 2019. We grew fond of it... but were also too well aware of its flaws 😅
+At [Kumo](https://dev.to/kumo), we are big fans of Jeremy Daly’s [DynamoDB-Toolbox](https://github.com/jeremydaly/dynamodb-toolbox). We started using it as early as 2019 and grew fond of it... but were also too well aware of its flaws 😅
 
-One of them was that it had been originally coded in JavaScript. Although Jeremy rewrote the source code in TypeScript in 2020, it didn't handle type inference, a feature that I eventually came to implement myself in the [v0.4](https://github.com/jeremydaly/dynamodb-toolbox/releases/tag/v0.4.0).
+One of them was that it had originally been coded in JavaScript. Although Jeremy rewrote the source code in TypeScript in 2020, it didn't handle type inference, a feature that I eventually came to implement myself in the [v0.4](https://github.com/jeremydaly/dynamodb-toolbox/releases/tag/v0.4.0).
 
-However, there were still some features that we felt lacked: From declaring **ˋenums` on primitive values**, to supporting **recursive schemas and types** (lists and maps sub-attributes) and even **polymorphism**.
+However, there were still some features that we felt lacked: From declaring **ˋenums` on primitives**, to supporting **recursive schemas and types** (lists and maps sub-attributes) and even **polymorphism**.
 
-I was also wary of the object-oriented approach: I don’t have anything against classes, but they are not tree-shakable. Meaning that **they should be kept relatively small in a serverless context**. That’s what AWS went for with the [v3 of their SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/#usage), and for good reasons: Keep bundle tights!
+I was also wary of the object-oriented approach: I don’t have anything against classes, but they are not tree-shakable. Meaning that **they should be kept relatively light in a serverless context**. That’s what AWS went for with the [v3 of their SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/#usage), and for good reasons: Keep bundle tights!
 
 That just wasn't the case for DynamoDB-Toolbox: I remember working on an `.update` method that was more than 1000 lines long... But why bundle it when you don't even need it?
 
 So last year, I decided to throw myself into a complete overhaul of the code, with three main objectives:
 
 - Support the v3 of the AWS SDK (although [it is now supported](https://github.com/jeremydaly/dynamodb-toolbox#using-aws-sdk-v2))
-- Get it the API and type inference on par with those of more "modern" tools like [zod](https://github.com/colinhacks/zod) and [electrodb](https://electrodb.fun/)
-- Bring a more functional and tree-shakable approach
+- Get the API and type inference on par with those of more "modern" tools like [zod](https://github.com/colinhacks/zod) and [electrodb](https://electrodb.fun/)
+- Use a more functional and tree-shakable approach
 
 Today, I am happy to announce the **v1 beta of dynamodb-toolbox is out** 🙌 It includes new `Table` and `Entity` classes, as well as complete support for `PutItem`, `GetItem` and `DeleteItem` commands (including conditions and projections). With `UpdateItem`, `Query` and `Scan` commands soon to follow.
 
-This article details how the new API works and the main breaking changes since the pre-v1 versions - which, by the way, only concern the API: No data migration needed 🥳
+This article details how the new API works and the main breaking changes from previous versions - which, by the way, only concern the API: No data migration needed 🥳
+
+Let's dive in!
 
 ## Table of content
 
