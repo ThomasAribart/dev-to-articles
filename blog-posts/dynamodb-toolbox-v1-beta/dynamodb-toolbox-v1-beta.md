@@ -833,17 +833,17 @@ The `DeleteItem` command is pretty much a mix between the two previous ones:
 import { DeleteItemCommand } from 'dynamodb-toolbox';
 
 const { Attributes } = await pokemonEntity.build(DeleteItemCommand)
-	.key(pokemonKey)
-	.options({
+  .key(pokemonKey)
+  .options({
     capacity: "TOTAL",
-		metrics: "SIZE",
-		// 👇 Will type the response `Attributes`
-		returnValues: "ALL_OLD",
+    metrics: "SIZE",
+    // 👇 Will type the response `Attributes`
+    returnValues: "ALL_OLD",
     condition: {
       or: [
-				{ attr: "level", lte: 99 },
-				...
-			]
+        { attr: "level", lte: 99 },
+        ...
+      ],
     },
   }).send();
 ```
@@ -861,10 +861,10 @@ import { formatSavedItem } from 'dynamodb-toolbox';
 
 // 🙌 Typed as FormattedItem<typeof pokemonEntity>
 const formattedPokemon = formatSavedItem(
-	pokemonEntity,
-	savedPokemon,
-	// As in GetItem commands, attributes will filter the formatted item
-	{ attributes: [...] }
+  pokemonEntity,
+  savedPokemon,
+  // As in GetItem commands, attributes will filter the formatted item
+  { attributes: [...] }
 );
 ```
 
@@ -872,8 +872,8 @@ Note that **it is a parsing operation**, i.e. it does not require the item to be
 
 ```tsx
 const formattedPokemon = formatSavedItem(
-	pokemonEntity,
-	{ level: "not a number", ... }
+  pokemonEntity,
+  { level: "not a number", ... }
 );
 // ❌ Will throw:
 // => "Invalid attribute in saved item: level. Should be a number"
@@ -881,7 +881,7 @@ const formattedPokemon = formatSavedItem(
 
 ### Condition and parseCondition
 
-The `Condition` type and ˋparseCondition` util are useful to type conditions and build condition expressions:
+The `Condition` type and `parseCondition` util are useful to type conditions and build condition expressions:
 
 ```tsx
 import { Condition, parseCondition } from 'dynamodb-toolbox';
@@ -901,7 +901,7 @@ const parsedCondition = parseCondition(pokemonEntity, condition);
 
 ### Projection and parseProjection
 
-The `AnyAttributePath` type and ˋparseProjection` util are useful to type attributes paths and build projection expressions:
+The `AnyAttributePath` type and `parseProjection` util are useful to type attributes paths and build projection expressions:
 
 ```tsx
 import { AnyAttributePath, parseProjection } from 'dynamodb-toolbox';
