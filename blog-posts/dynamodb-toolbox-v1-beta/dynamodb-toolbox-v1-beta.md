@@ -444,7 +444,7 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>
 //	}
 ```
 
-You can also provide default values through the `default` option or method:
+You can provide default values through the `default` option or method:
 
 ```tsx
 // 🙌 Correctly typed!
@@ -472,7 +472,7 @@ const pokemonPartitionKey = string().const('POKEMON');
 ```
 
 <aside style="font-size: medium;">
-💡 *For type inference reasons, the `enum` option is only available as a method, not as an object option
+💡 *For type inference reasons, the `enum` option is only available as a method, not as an object option*
 
 </aside>
 
@@ -528,7 +528,7 @@ As in sets, options can be povided as a 2nd argument.
 
 #### Map
 
-Defines a finite list of key / sub-schema of any type pairs:
+Defines a finite list of key-value pairs. Keys must follow a string schema, while values can be sub-schema of any type:
 
 ```tsx
 import { map } from 'dynamodb-toolbox';
@@ -644,17 +644,18 @@ If there are other types you’d like to see, comment this article and/or [open 
 
 ## Computed defaults
 
-_[TO FINISH]_ The `default` only support independent defaults. In previous versions, `default` could also compute. This feature was very handy … for technical … such as computing a GSI from other attributes.
+In previous versions, `default` could be used to compute attribute from other attributes values. This feature was very handy for "technical" attributes such as composite indexes.
 
 However, it was just impossible to type correctly in TypeScript:
 
 ```tsx
 const pokemonSchema = schema({
-	// ...
+  ...
 	level: number(),
 	levelPlusOne: number().default(
 		// ❌ No way to retrieve the caller context
 		input => input.level + 1
+  )
 })
 ```
 
@@ -674,8 +675,8 @@ const pokemonSchema = schema({
 });
 ```
 
-<aside>
-💡 `ComputedDefault` is a JavaScript [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) (*TLDR: A sort of unique and custom `null`*), so it cannot possibly conflict with an actual desired default value.
+<aside style="font-size: medium;">
+💡 *`ComputedDefault` is a JavaScript [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) (*TLDR: A sort of unique and custom `null`*), so it cannot possibly conflict with an actual desired default value.*
 
 </aside>
 
@@ -707,7 +708,7 @@ const pokemonSchema = schema({
 })
 
 const pokemonEntity = new EntityV2({
-	// ...
+  ...
 	schema: pokemonSchema,
   computeDefaults: {
 		levelHistory: {
@@ -731,23 +732,19 @@ Note that there is (and has always been) an ambiguity as to when `default` value
 Now that we know how to design entities, let’s take a look at how we can leverage them to craft commands 👍
 
 <aside>
-💡 *As stated in the intro, the beta only support the `PUT`, `GET`, and `DELETE` commands. If you need to run `UPDATE`, `QUERY` or `SCAN` commands, our advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem).*
+💡 *As stated in the intro, the beta only support the `PutItem`, `GetItem`, and `DeleteItem` commands. If you need to run `UpdateItem`, `Query` or `Scan` commands, our advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem).*
 
 </aside>
 
-_[TO FINISH]_ v0.x did not favor tree-shaking.
+As mentioned in the intro, I searched for a syntax that favored tree-shaking. Here's an example of `PutItem` command:
 
 ```tsx
 // v0.x Not tree-shakable
 const response = await pokemonEntity.putItem(pokemonItem, options);
-```
-
-_[TO FINISH]_ favored tree-shaking.
-
-```tsx
-import { PutItemCommand } from 'dynamodb-toolbox';
 
 // v1 Tree-shakable 🙌
+import { PutItemCommand } from 'dynamodb-toolbox';
+
 const command = new PutItemCommand(
   pokemonEntity,
   pokemonItem,
@@ -755,11 +752,13 @@ const command = new PutItemCommand(
   putItemOptions,
 );
 
+// Get command params
 const params = command.params();
+// Send command
 const response = await command.send();
 ```
 
-Note that `pokemonItem`, can be provided later or edited, which can be useful if the command is a result of a computation. At execution, they will throw an error of no item has been provided:
+Note that `pokemonItem`, can be provided later or edited, which can be useful if the command is built in several steps (at execution, an error will be thrown if no item has been provided):
 
 ```tsx
 import { PutItemCommand } from 'dynamodb-toolbox';
@@ -784,7 +783,7 @@ const response = await pokemonEntity
   .send();
 ```
 
-<aside>
+<aside style="font-size: medium;">
 💡 *As much as I appreciate this syntax, it makes mocking hard in unit tests. I'm already working on a `mockEntity` helper, inspired by the awesome [`aws-sdk-client-mock`](https://github.com/m-radzikowski/aws-sdk-client-mock). This will probably make another article soon.*
 
 </aside>
