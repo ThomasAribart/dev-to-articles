@@ -93,7 +93,7 @@ yarn add @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
 
 ## Tables
 
-Tables are defined pretty much the same way as in previous versions, but the `key` attributes now have a `type` along with their ˋname`:
+Tables are defined pretty much the same way as in previous versions, but the `key` attributes now have a `type` along with their `name`:
 
 ```tsx
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
