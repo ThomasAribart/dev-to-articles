@@ -152,10 +152,10 @@ For Entities, the main change is that the `attributes` argument becomes `schema`
 import { EntityV2, schema } from 'dynamodb-toolbox';
 
 const myEntity = new EntityV2({
-  name: "MyEntity",
+  name: 'MyEntity',
   table: myTable,
   // Attributes definition
-  schema: schema({ ... })
+  schema: schema({ ... }),
 });
 ```
 
@@ -222,7 +222,7 @@ const pokemonEntity = new EntityV2({
 
 ```tsx
 const pokemonEntity = new EntityV2({
-  // ...
+  ...
   table: MyTable, // <= { PK: string, SK: string } primary key
   schema: schema({
     pokemonClass: string().key(),
@@ -260,28 +260,28 @@ const pokemonEntity = new EntityV2({
 // What Pokemons will look like in DynamoDB
 type SavedPokemon = SavedItem<typeof pokemonEntity>;
 // 🙌 Equivalent to:
-//	{
-//		_et: "Pokemon",
-//		_ct: string,
-//		_md: string,
-//		PK: string,
-//		SK: string,
-//		level: number,
-//		customName?: string | undefined,
-//		internalField: string | undefined,
-//	}
+// {
+//   _et: "Pokemon",
+//   _ct: string,
+//   _md: string,
+//   PK: string,
+//   SK: string,
+//   level: number,
+//   customName?: string | undefined,
+//   internalField: string | undefined,
+// }
 
 // What fetched Pokemons will look like in your code
 type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // 🙌 Equivalent to:
-//	{
-//		created: string,
-//		modified: string,
-//		pokemonClass: string,
-//		pokemonId: string,
-//		level: number,
-//		customName?: string | undefined,
-//	}
+// {
+//   created: string,
+//   modified: string,
+//   pokemonClass: string,
+//   pokemonId: string,
+//   level: number,
+//   customName?: string | undefined,
+// }
 ```
 
 ## Designing Entity schemas
@@ -404,17 +404,17 @@ const pokemonSchema = schema({
 
 type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // => {
-//		...
-//		metadata: unknown
-//	}
+//   ...
+//   metadata: unknown
+// }
 ```
 
 You can provide default values through the `default` option or method:
 
 ```tsx
-const metadata = any().default({ any: "value" });
+const metadata = any().default({ any: 'value' });
 const metadata = any({
-  default: () => "Getters also work!",
+  default: () => 'Getters also work!',
 });
 ```
 
@@ -425,7 +425,7 @@ Defines a `string`, `number`, `boolean` or `binary` attribute:
 ```tsx
 import { string, number, boolean, binary } from 'dynamodb-toolbox';
 
-const pokemonSchema: schema({
+const pokemonSchema = schema({
   ...
   pokemonType: string(),
   level: number(),
@@ -440,7 +440,7 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 //   level: number
 //   isLegendary: boolean
 //   binEncoded: Buffer
-//	}
+// }
 ```
 
 You can provide default values through the `default` option or method:
@@ -448,20 +448,18 @@ You can provide default values through the `default` option or method:
 ```tsx
 // 🙌 Correctly typed!
 const level = number().default(42);
-const date = string()
-  .default(() => new Date().toISOString());
+const date = string().default(() => new Date().toISOString());
 
 const level = number({ default: 42 });
 const date = string({
-  default: () => new Date().toISOString()
+  default: () => new Date().toISOString(),
 });
 ```
 
 Primitive types have an additional `enum` option. For instance, you could provide a finite list of pokemon types:
 
 ```tsx
-const pokemonTypeAttribute = string()
-  .enum('fire', 'grass', 'water');
+const pokemonTypeAttribute = string().enum('fire', 'grass', 'water');
 
 // Shorthand for `.enum("POKEMON").default("POKEMON")`
 const pokemonPartitionKey = string().const('POKEMON');
@@ -486,9 +484,9 @@ const pokemonSchema = schema({
 
 type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // => {
-//		...
-//		skills: Set<string>
-//	}
+//   ...
+//   skills: Set<string>
+// }
 ```
 
 Options can be provided as a 2nd argument:
@@ -512,9 +510,9 @@ const pokemonSchema = schema({
 
 type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // => {
-//		...
-//		skills: string[]
-//	}
+//   ...
+//   skills: string[]
+// }
 ```
 
 As in sets, options can be povided as a 2nd argument.
@@ -537,13 +535,13 @@ const pokemonSchema = schema({
 
 type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // => {
-//		...
-//		nestedMagic: {
-//			will: {
-//				work: "!"
-//			}
-//		}
-//	}
+//   ...
+//   nestedMagic: {
+//     will: {
+//       work: "!"
+//     }
+//   }
+// }
 ```
 
 As in sets and lists, options can be povided as a 2nd argument.
@@ -564,11 +562,11 @@ const pokemonSchema = schema({
 
 type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // => {
-//		...
-//		weaknessesByPokemonType: {
-//      [key in PokemonType]?: number
-//		}
-//	}
+//   ...
+//   weaknessesByPokemonType: {
+//     [key in PokemonType]?: number
+//   }
+// }
 ```
 
 Options can be provided as a 3rd argument:
@@ -586,7 +584,7 @@ A new **meta-**attribute type that represents a union of types, i.e. a range of 
 import { anyOf } from 'dynamodb-toolbox';
 
 const pokemonSchema = schema({
-  // ...
+  ...
   pokemonType: anyOf([
     string().const('fire'),
     string().const('grass'),
@@ -599,7 +597,7 @@ In this particular case, an `enum` would have done the trick. However, `anyOf` b
 
 ```tsx
 const pokemonSchema = schema({
-  // ...
+  ...
   captureState: anyOf([
     map({
       status: string().const('catched'),
@@ -613,8 +611,8 @@ const pokemonSchema = schema({
 
 type CaptureState = FormattedItem<typeof pokemonEntity>['captureState'];
 // 🙌 Equivalent to:
-//  | { status: "wild" }
-//  | { status: "catched", trainerId: string }
+// | { status: "wild" }
+// | { status: "catched", trainerId: string }
 ```
 
 As in sets, lists and maps, options can be povided as a 2nd argument.
@@ -637,7 +635,7 @@ const pokemonSchema = schema({
   level: number(),
   levelPlusOne: number().default(
     // ❌ No way to retrieve the caller context
-    input => input.level + 1
+    input => input.level + 1,
   ),
 });
 ```
@@ -667,6 +665,7 @@ const pokemonSchema = schema({
 
 ```tsx
 const pokemonEntity = new EntityV2({
+  ...
   schema: pokemonSchema,
   computeDefaults: {
     // 🙌 Correctly typed!
@@ -681,7 +680,7 @@ In the tricky case of nested attributes, `computeDefaults` becomes an object wit
 const pokemonSchema = schema({
   ...
   defaultLevel: number(),
-	// 👇 Defaulted Map attribute
+  // 👇 Defaulted Map attribute
   levelHistory: map({
     currentLevel: number(),
     // 👇 Defaulted sub-attribute
@@ -695,7 +694,7 @@ const pokemonEntity = new EntityV2({
   computeDefaults: {
     levelHistory: {
       // Defaulted value of Map attribute
-      _map: (item) => ({
+      _map: item => ({
         currentLevel: item.defaultLevel,
         nextLevel: item.defaultLevel,
       }),
@@ -733,7 +732,7 @@ const command = new PutItemCommand(
   // 🙌 Correctly typed!
   pokemonItem,
   // 👇 Optional
-  putItemOptions
+  putItemOptions,
 );
 
 // Get command params
@@ -782,23 +781,25 @@ The `capacity`, `metrics` and `returnValues` options behave exactly the same as 
 ```tsx
 import { PutItemCommand } from 'dynamodb-toolbox';
 
-const { Attributes } = await pokemonEntity.build(PutItemCommand)
+const { Attributes } = await pokemonEntity
+  .build(PutItemCommand)
   .item(pokemonItem)
   .options({
-    capacity: "TOTAL",
-    metrics: "SIZE",
+    capacity: 'TOTAL',
+    metrics: 'SIZE',
     // 👇 Will type the response `Attributes`
-    returnValues: "ALL_OLD",
+    returnValues: 'ALL_OLD',
     condition: {
       or: [
-        { attr: "pokemonId", exists: false },
+        { attr: 'pokemonId', exists: false },
         // 🙌 "lte" is correcly typed
-        { attr: "level", lte: 99 },
+        { attr: 'level', lte: 99 },
         // 🙌 You can nest logical combinations
-        { and: [{ not: { ... } }, ...] }
+        { and: [{ not: { ... } }, ...] },
       ],
     },
-  }).send();
+  })
+  .send();
 ```
 
 <aside style="font-size: medium;">
@@ -832,20 +833,22 @@ The `DeleteItem` command is pretty much a mix between the two previous ones:
 ```tsx
 import { DeleteItemCommand } from 'dynamodb-toolbox';
 
-const { Attributes } = await pokemonEntity.build(DeleteItemCommand)
+const { Attributes } = await pokemonEntity
+  .build(DeleteItemCommand)
   .key(pokemonKey)
   .options({
-    capacity: "TOTAL",
-    metrics: "SIZE",
+    capacity: 'TOTAL',
+    metrics: 'SIZE',
     // 👇 Will type the response `Attributes`
-    returnValues: "ALL_OLD",
+    returnValues: 'ALL_OLD',
     condition: {
       or: [
-        { attr: "level", lte: 99 },
+        { attr: 'level', lte: 99 },
         ...
       ],
     },
-  }).send();
+  })
+  .send();
 ```
 
 ## Utility helpers and types
@@ -864,18 +867,18 @@ const formattedPokemon = formatSavedItem(
   pokemonEntity,
   savedPokemon,
   // As in GetItem commands, attributes will filter the formatted item
-  { attributes: [...] }
+  { attributes: [...] },
 );
 ```
 
 Note that **it is a parsing operation**, i.e. it does not require the item to be typed as `SavedItem<typeof myEntity>`, but will throw an error if the saved item is invalid:
 
 ```tsx
-const formattedPokemon = formatSavedItem(
-  pokemonEntity,
-  { level: "not a number", ... }
-);
-// ❌ Will throw:
+const formattedPokemon = formatSavedItem(pokemonEntity, {
+  ...
+  level: 'not a number',
+});
+// ❌ Will raise error:
 // => "Invalid attribute in saved item: level. Should be a number"
 ```
 
@@ -893,9 +896,9 @@ const condition: Condition<typeof pokemonEntity> = {
 
 const parsedCondition = parseCondition(pokemonEntity, condition);
 // => {
-//	ConditionExpression: "#1 <= :1",
-//	ExpressionAttributeNames: { "#1": "level" },
-//	ExpressionAttributeValues: { ":1": 42 }
+//   ConditionExpression: "#1 <= :1",
+//   ExpressionAttributeNames: { "#1": "level" },
+//   ExpressionAttributeValues: { ":1": 42 },
 // }
 ```
 
@@ -913,12 +916,12 @@ const attributes: AnyAttributePath<typeof pokemonEntity>[] = [
 
 const parsedCondition = parseProjection(pokemonEntity, attributes);
 // => {
-//	ProjectionExpression: '#1, #2.#3',
-//	ExpressionAttributeNames: {
-//	'#1': 'pokemonType',
-//	'#2': 'levelHistory'
-//	'#3': 'currentLevel'
-//	}
+//   ProjectionExpression: '#1, #2.#3',
+//   ExpressionAttributeNames: {
+//     '#1': 'pokemonType',
+//     '#2': 'levelHistory',
+//     '#3': 'currentLevel',
+//   },
 // }
 ```
 
@@ -957,19 +960,19 @@ const handleError = (error: Error) => {
   if (!error instanceof DynamoDBToolboxError) throw error;
 
   switch (error.code) {
-    case "parsing.invalidAttributeInput":
+    case 'parsing.invalidAttributeInput':
       const path = error.path;
       // => "level"
       const payload = error.payload;
       // => { received: "not a number", expected: "number" }
-      break
+      break;
       ...
-    case "entity.invalidItemSchema":
+    case 'entity.invalidItemSchema':
       const path = error.path; // ❌ error does not have path property
       const payload = error.payload; // ❌ same goes with payload
       ...
   }
-}
+};
 ```
 
 ## Conclusion
