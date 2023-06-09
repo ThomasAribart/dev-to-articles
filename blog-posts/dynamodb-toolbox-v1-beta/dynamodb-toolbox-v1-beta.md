@@ -104,7 +104,7 @@ import { TableV2 } from 'dynamodb-toolbox';
 const dynamoDBClient = new DynamoDBClient({});
 const documentClient = DynamoDBDocumentClient.from(dynamoDBClient);
 
-const MyTable = new TableV2({
+const myTable = new TableV2({
   name: 'MySuperTable',
   partitionKey: {
     name: 'PK',
@@ -112,7 +112,7 @@ const MyTable = new TableV2({
   },
   sortKey: {
     name: 'SK',
-    type: 'number',
+    type: 'string',
   },
   documentClient,
 });
@@ -123,20 +123,20 @@ const MyTable = new TableV2({
 
 </aside>
 
-The table name can be provided with a getter. This can be useful in environments in which it is not actually available (e.g. tests or deployments):
+<!-- The table name can be provided with a getter. This can be useful in environments in which it is not actually available (e.g. tests or deployments):
 
 ```tsx
-const MyTable = new TableV2({
+const myTable = new TableV2({
   ...
   // 👇 Only executed at command execution
   name: () => process.env.TABLE_NAME,
 });
-```
+``` -->
 
 As in previous versions, the `v1` classes tag your data with an entity identifier through an internal `entity` string attribute, saved as `"_et"` by default. This can be renamed at the `Table` level through the `entityAttributeSavedAs` argument:
 
 ```tsx
-const MyTable = new TableV2({
+const myTable = new TableV2({
   ...
   // 👇 defaults to "_et"
   entityAttributeSavedAs: '__entity__',
@@ -205,9 +205,11 @@ An important change from previous versions is that the `EntityV2` schema is vali
 - The simplest one is to have an entity schema that **already matches the table schema** (see ["Designing Entity schemas"](#designing-entity-schemas)). The Entity is then considered valid and no other argument is required:
 
 ```tsx
+import { string } from 'dynamodb-toolbox';
+
 const pokemonEntity = new EntityV2({
   name: 'Pokemon',
-  table: MyTable, // <= { PK: string, SK: string } primary key
+  table: myTable, // <= { PK: string, SK: string } primary key
   schema: schema({
     // Provide a schema that matches the primary key
     PK: string().key(),
@@ -223,7 +225,7 @@ const pokemonEntity = new EntityV2({
 ```tsx
 const pokemonEntity = new EntityV2({
   ...
-  table: MyTable, // <= { PK: string, SK: string } primary key
+  table: myTable, // <= { PK: string, SK: string } primary key
   schema: schema({
     pokemonClass: string().key(),
     pokemonId: string().key(),
@@ -247,7 +249,7 @@ import type { FormattedItem, SavedItem } from 'dynamodb-toolbox';
 const pokemonEntity = new EntityV2({
   name: 'Pokemon',
   timestamps: true,
-  table: MyTable,
+  table: myTable,
   schema: schema({
     pokemonClass: string().key().savedAs('PK'),
     pokemonId: string().key().savedAs('SK'),
@@ -306,7 +308,7 @@ const pokemonName = attr.string();
 
 Prior to being wrapped in a `schema` declaration, attributes are called **warm:** They are **not validated** (at run-time) and can be used to build other schemas. By inspecting their types, you will see that they are prefixed with `$`. Once **frozen**, validation is applied and building methods are stripped:
 
-_TODO: GIF OF SCREEN CAPTURE_
+![Warm vs frozen schemas](./warm-vs-frozen-schemas.gif)
 
 The main takeaway is that **warm schemas can be composed** while **frozen schemas cannot**:
 
