@@ -200,7 +200,7 @@ const myEntity = new EntityV2({
 
 ### Matching the Table schema
 
-An important change from previous versions is that the `EntityV2` schema is validated against the `TableV2`, both in types and at runtime. There are two ways to match the table schema:
+An important change from previous versions is that the `EntityV2` key attributes are validated against the `TableV2` schema, both through types and at runtime. There are two ways to match the table schema:
 
 - The simplest one is to have an entity schema that **already matches the table schema** (see ["Designing Entity schemas"](#designing-entity-schemas)). The Entity is then considered valid and no other argument is required:
 
@@ -220,7 +220,7 @@ const pokemonEntity = new EntityV2({
 });
 ```
 
-- If the entity schema doesn’t match the table schema, the `Entity` class will require you to add a `computeKey` property which must derive the primary key from the schema `key` attributes:
+- If the entity key attributes don't match the table schema, the `Entity` class will require you to add a `computeKey` property which must derive the primary key from them:
 
 ```tsx
 const pokemonEntity = new EntityV2({
@@ -474,7 +474,7 @@ const pokemonPartitionKey = string().const('POKEMON');
 
 #### Set
 
-Defines a set of strings, numbers or binaries. Unlike in previous versions, sets are kept as `Set` classes. Let me know if you would prefer using arrays (or being able to chose from both):
+Defines a set of strings, numbers or binaries. Unlike in previous versions, sets are kept as `Set` classes. Let me know if you would prefer using arrays (or being able to choose from both):
 
 ```tsx
 import { set } from 'dynamodb-toolbox';
@@ -621,13 +621,13 @@ As in sets, lists and maps, options can be povided as a 2nd argument.
 
 #### Looking forward
 
-That’s all for now! I’m planning to include new `tuple` and `allOf` attributes someday.
+That’s all for now! I’m planning on including new `tuple` and `allOf` attributes at some point.
 
-If there are other types you’d like to see, comment this article and/or [open a discussion on the official repo](https://github.com/jeremydaly/dynamodb-toolbox) with the `v1` label 👍
+If there are other types you’d like to see, feel free to leave a comment on this article and/or [open a discussion on the official repo](https://github.com/jeremydaly/dynamodb-toolbox) with the `v1` label 👍
 
 ## Computed defaults
 
-In previous versions, `default` could be used to compute attribute from other attributes values. This feature was very handy for "technical" attributes such as composite indexes.
+In previous versions, `default` was used to compute attribute from other attributes values. This feature was very handy for "technical" attributes such as composite indexes.
 
 However, it was just impossible to type correctly in TypeScript:
 
@@ -716,11 +716,11 @@ Note that there is (and has always been) an ambiguity as to when `default` value
 Now that we know how to design entities, let’s take a look at how we can leverage them to craft commands 👍
 
 <aside>
-💡 *The beta only support the `PutItem`, `GetItem`, and `DeleteItem` commands. If you need to run `UpdateItem`, `Query` or `Scan` commands, our advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem).*
+💡 *The beta only supports the `PutItem`, `GetItem`, and `DeleteItem` commands. If you need to run `UpdateItem`, `Query` or `Scan` commands, our advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem).*
 
 </aside>
 
-As mentioned in the intro, I searched for a syntax that favored tree-shaking. Here's an example of `PutItem` command:
+As mentioned in the intro, I searched for a syntax that favored tree-shaking. Here's an example of it, with the `PutItem` command:
 
 ```tsx
 // v0.x Not tree-shakable
@@ -830,7 +830,7 @@ const { Item } = await pokemonEntity
 
 ### DeleteItemCommand
 
-The `DeleteItem` command is pretty much a mix between the two previous ones:
+The `DeleteItem` command is pretty much a mix between the two previous ones, options wise:
 
 ```tsx
 import { DeleteItemCommand } from 'dynamodb-toolbox';
@@ -981,6 +981,6 @@ const handleError = (error: Error) => {
 
 And that’s it for now! I hope you’re as excited as I am about this new release 🙌
 
-If you have in mind features that I missed, or would like to see some of the ones I mentioned prioritised, please comment this article and/or [create an issue or open a discussion on the official repo](https://github.com/jeremydaly/dynamodb-toolbox) with the `v1` label 👍
+If you have features that I've missed in mind, or would like to see some of the ones I mentioned prioritized, please leave a comment on this article and/or [create an issue or open a discussion on the official repo](https://github.com/jeremydaly/dynamodb-toolbox) with the `v1` label 👍
 
 See you soon!
