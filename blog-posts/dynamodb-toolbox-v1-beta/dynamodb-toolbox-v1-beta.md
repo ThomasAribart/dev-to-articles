@@ -1,5 +1,5 @@
 ---
-published: false
+published: true
 title: The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!
 cover_image: https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/dynamodb-toolbox-v1-beta/dynamodb-toolbox-v1-beta.png
 description: The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!
