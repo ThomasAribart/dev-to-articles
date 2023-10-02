@@ -24,7 +24,7 @@ So last year, I decided to throw myself into a complete overhaul of the code, wi
 - Get the API and type inference on par with those of more "modern" tools like [zod](https://github.com/colinhacks/zod) and [electrodb](https://electrodb.fun/)
 - Use a more functional and tree-shakable approach
 
-Today, I am happy to announce the **v1 beta of dynamodb-toolbox is out** 🙌 It includes reworked `Table` and `Entity` classes, as well as complete support for `PutItem`, `GetItem` and `DeleteItem` commands (including conditions and projections), with `UpdateItem`, `Query` and `Scan` commands soon to follow.
+Today, I am happy to announce the **v1 beta of dynamodb-toolbox is out** 🙌 It includes reworked `Table` and `Entity` classes, as well as complete support for `PutItem`, `GetItem`, `UpdateItem` and `DeleteItem` commands (including conditions and projections), with `Query` and `Scan` commands soon to follow.
 
 This article details how the new API works and the main breaking changes from previous versions - which, by the way, only concern the API: No data migration needed 🥳
 
@@ -54,6 +54,13 @@ Let's dive in!
   - [`PutItemCommand`](#putitemcommand)
   - [`GetItemCommand`](#getitemcommand)
   - [`DeleteItemCommand`](#deleteitemcommand)
+  - [`UpdateItemCommand`](#updateitemcommand)
+    - [Removing an attribute](#removing-an-attribute)
+    - [Referencing saved values](#referencing-saved-values)
+    - [Non-recursive attributes](#non-recursive-attributes)
+    - [Recursive attributes](#recursive-attributes)
+    - [`any` and `anyOf` attributes](#any-and-anyof-attributes)
+- [Mocking entities in tests](#mocking-entities-in-tests)
 - [Utility helpers and types](#utility-helpers-and-types)
   - [`formatSavedItem`](#formatsaveditem)
   - [`Condition` and `parseCondition`](#condition-and-parsecondition)
@@ -66,16 +73,17 @@ Let's dive in!
 
 ```bash
 ### npm
-npm i dynamodb-toolbox@1.0.0-beta.0
+npm i dynamodb-toolbox@1.0.0-beta.1
 
 ## yarn
-yarn add dynamodb-toolbox@1.0.0-beta.0
+yarn add dynamodb-toolbox@1.0.0-beta.1
 
 ## ...and so on
 ```
 
 <aside style="font-size: medium;">
-☝️ *Stay up to date with the patches by following the project [GitHub releases](https://github.com/jeremydaly/dynamodb-toolbox/releases)*
+
+☝️ _If you installed the <code>beta.0</code> version, you may need my [previous article](https://dev.to/slsbytheodo/the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-22op) instead_
 
 </aside>
 
@@ -119,11 +127,12 @@ const myTable = new TableV2({
 ```
 
 <aside style="font-size: medium;">
-☝️ *The v1 does not support indexes yet as queries are not yet available.*
+
+☝️ _The v1 does not support indexes yet as queries are not yet available._
 
 </aside>
 
-<!-- The table name can be provided with a getter. This can be useful in environments in which it is not actually available (e.g. tests or deployments):
+The table name can be provided with a getter, which can be useful in some contexts where you may want to use the class without actually running any command (e.g. tests or deployments):
 
 ```tsx
 const myTable = new TableV2({
@@ -131,7 +140,7 @@ const myTable = new TableV2({
   // 👇 Only executed at command execution
   name: () => process.env.TABLE_NAME,
 });
-``` -->
+```
 
 As in previous versions, the `v1` classes tag your data with an entity identifier through an internal `entity` string attribute, saved as `"_et"` by default. This can be renamed at the `Table` level through the `entityAttributeSavedAs` argument:
 
@@ -158,6 +167,8 @@ const myEntity = new EntityV2({
   schema: schema({ ... }),
 });
 ```
+
+See [Designing Entity schemas](#designing-entity-schemas) for more docs.
 
 ### Timestamps
 
@@ -344,7 +355,7 @@ All attributes share the following options:
 - `required` _(string?="atLeastOnce")_ Tag a root attribute or Map sub-attribute as **required**. Possible values are:
   - `"atLeastOnce"` Required in `PutItem` commands
   - `"never"`: Optional in all commands
-  - `"always"`: Required in `PutItem`, `GetItem` and `DeleteItem` commands
+  - `"always"`: Required in `PutItem`, `GetItem`, `UpdateItem` and `DeleteItem` commands
 
 ```tsx
 // Equivalent
@@ -359,7 +370,8 @@ const pokemonName = string({ required: 'never' });
 A very important breaking change from previous versions is that **root attributes and Map sub-attributes are now required by default**. This was made so **composition and validation work better together**.
 
 <aside style="font-size: medium;">
-💡 *Outside of root attributes and Map sub-attributes, such as in a list of strings, it doesn’t make sense for sub-schemas to be optional. So, should I force users to write `list(string().required())` every time OR make string validation and type inference aware of their context (ignore `required` in lists but not in maps)? It felt more elegant to enforce `string()` as required by default and prevent schemas such as `list(string().optional())`.*
+
+💡 _Outside of root attributes and Map sub-attributes, such as in a list of strings, it doesn’t make sense for sub-schemas to be optional. So, should I force users to write `list(string().required())` every time OR make string validation and type inference aware of their context (ignore `required` in lists but not in maps)? It felt more elegant to enforce `string()` as required by default and prevent schemas such as `list(string().optional())`._
 
 </aside>
 
@@ -411,13 +423,36 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // }
 ```
 
-You can provide default values through the `default` option or method:
+You can provide default values through the `defaults` option or the `keyDefault`, `putDefault` and `updateDefault` methods. A simpler `default` method is also exposed. It acts similarly as `putDefault`, except if the attribute has been tagged as a `key` attribute, in which case it will act as `keyDefault`:
 
 ```tsx
 const metadata = any().default({ any: 'value' });
+// 👇 Similar to
+const metadata = any().putDefault({ any: 'value' });
+// 👇 ...or
 const metadata = any({
-  default: () => 'Getters also work!',
+  defaults: {
+    key: undefined,
+    put: { any: 'value' },
+    update: undefined,
+  },
 });
+
+const keyPart = any().key().default('my-awesome-partition-key');
+// 👇 Similar to
+const metadata = any().key().keyDefault('my-awesome-partition-key');
+// 👇 ...or
+const metadata = any({
+  key: true,
+  defaults: {
+    key: 'my-awesome-partition-key',
+    // put & update defaults are not useful in `key` attributes
+    put: undefined,
+    update: undefined,
+  },
+});
+
+const metadata = any().default(() => 'Getters also work!');
 ```
 
 #### Primitives
@@ -445,7 +480,7 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // }
 ```
 
-You can provide default values through the `default` option or method:
+You can provide default values through the `defaults` option or the `keyDefault`, `putDefault` and `updateDefault` methods. A simpler `default` method is also exposed. It acts similarly as `putDefault`, except if the attribute has been tagged as a `key` attribute, in which case it will act as `keyDefault`:
 
 ```tsx
 // 🙌 Correctly typed!
@@ -456,6 +491,14 @@ const level = number({ default: 42 });
 const date = string({
   default: () => new Date().toISOString(),
 });
+
+import { $add } from 'dynamodb-toolbox';
+
+const numberOfOperations = number()
+  .putDefault(1)
+  // 👇 Special update operations are also available
+  // (only as a function return for now though, to escape schema validation)
+  .updateDefault(() => $add(1));
 ```
 
 Primitive types have an additional `enum` option. For instance, you could provide a finite list of pokemon types:
@@ -468,7 +511,8 @@ const pokemonPartitionKey = string().const('POKEMON');
 ```
 
 <aside style="font-size: medium;">
-💡 *For type inference reasons, the `enum` option is only available as a method, not as an object option*
+
+💡 _For type inference reasons, the `enum` option is only available as a method, not as an object option_
 
 </aside>
 
@@ -580,7 +624,7 @@ const recordAttr = record(string(), number(), { hidden: true });
 
 #### AnyOf
 
-A new **meta-**attribute type that represents a union of types, i.e. a range of possible types:
+A new <b>meta-</b>attribute type that represents a union of types, i.e. a range of possible types:
 
 ```tsx
 import { anyOf } from 'dynamodb-toolbox';
@@ -602,8 +646,8 @@ const pokemonSchema = schema({
   ...
   captureState: anyOf([
     map({
-      status: string().const('catched'),
-      // 👇 captureState.trainerId exists if status is "catched"...
+      status: string().const('caught'),
+      // 👇 captureState.trainerId exists if status is "caught"...
       trainerId: string(),
     }),
     // ...but not otherwise! 🙌
@@ -614,14 +658,14 @@ const pokemonSchema = schema({
 type CaptureState = FormattedItem<typeof pokemonEntity>['captureState'];
 // 🙌 Equivalent to:
 // | { status: "wild" }
-// | { status: "catched", trainerId: string }
+// | { status: "caught", trainerId: string }
 ```
 
 As in sets, lists and maps, options can be povided as a 2nd argument.
 
 #### Looking forward
 
-That’s all for now! I’m planning on including new `tuple` and `allOf` attributes at some point.
+That’s all for now! I’m planning on including new `null`, `tuple` and `allOf` attributes at some point.
 
 If there are other types you’d like to see, feel free to leave a comment on this article and/or [open a discussion on the official repo](https://github.com/jeremydaly/dynamodb-toolbox) with the `v1` label 👍
 
@@ -659,24 +703,48 @@ const pokemonSchema = schema({
 ```
 
 <aside style="font-size: medium;">
-💡 *`ComputedDefault` is a JavaScript [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) (TLDR: A sort of unique and custom `null`), so it cannot possibly conflict with an actual desired default value.*
+
+💡 _`ComputedDefault` is a JavaScript [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) (TLDR: A sort of unique and custom `null`), so it cannot possibly conflict with an actual desired default value._
 
 </aside>
 
-- Then, declare a way to compute this attribute **at the entity level**, through the `computeDefaults` property:
+- Then, declare a way to compute this attribute **at the entity level**, through the `putDefaults` property:
 
 ```tsx
 const pokemonEntity = new EntityV2({
   ...
   schema: pokemonSchema,
-  computeDefaults: {
+  putDefaults: {
     // 🙌 Correctly typed!
     levelPlusOne: ({ level }) => level + 1,
   },
 });
 ```
 
-In the tricky case of nested attributes, `computeDefaults` becomes an object with an `_attributes` or `_elements` property to emphasize that the computing is **local**:
+- The same can be applied to `updateDefaults` (or both):
+
+```tsx
+import { $get } from 'dynamodb-toolbox';
+
+const pokemonSchema = schema({
+  ...
+  level: number(),
+  previousLevel: number().updateDefault(ComputedDefault),
+});
+
+const pokemonEntity = new EntityV2({
+  ...
+  schema: pokemonSchema,
+  updateDefaults: {
+    // 🙌 Correctly typed!
+    previousLevel: ({ level }) =>
+      // Update 'previousLevel' only if 'level' is updated
+      level !== undefined ? $get('level') : undefined,
+  },
+});
+```
+
+In the tricky case of nested attributes, `putDefaults` and `updateDefaults` become objects with an `_attributes` or `_elements` property to emphasize that the computing is **local**:
 
 ```tsx
 const pokemonSchema = schema({
@@ -709,14 +777,13 @@ const pokemonEntity = new EntityV2({
 });
 ```
 
-Note that there is (and has always been) an ambiguity as to when `default` values are actually used, that I hope to solve soon by splitting it into `getDefault`, `putDefault`, `updateDefault` and so on (`default` being the one to rule them all). For the moment, **`defaults` are only used in `putItem` commands.**
-
 ## Commands
 
 Now that we know how to design entities, let’s take a look at how we can leverage them to craft commands 👍
 
 <aside>
-💡 *The beta only supports the `PutItem`, `GetItem`, and `DeleteItem` commands. If you need to run `UpdateItem`, `Query` or `Scan` commands, our advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem).*
+
+💡 _The beta only supports the `PutItem`, `GetItem`, `UpdateItem` and `DeleteItem` commands. If you need to run `Query` or `Scan` commands, my advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem)._
 
 </aside>
 
@@ -743,7 +810,7 @@ const params = command.params();
 const response = await command.send();
 ```
 
-`pokemonItem` can be provided later or edited, which can be useful if the command is built in several steps (at execution, an error will be thrown if no item has been provided):
+`pokemonItem` can be provided later or edited:
 
 ```tsx
 import { PutItemCommand } from 'dynamodb-toolbox';
@@ -770,11 +837,6 @@ const response = await pokemonEntity
   .options(options)
   .send();
 ```
-
-<aside style="font-size: medium;">
-💡 *As much as I appreciate this syntax, it makes mocking hard in unit tests. I'm already working on a `mockEntity` helper, inspired by the awesome [`aws-sdk-client-mock`](https://github.com/m-radzikowski/aws-sdk-client-mock). This will probably make another article soon.*
-
-</aside>
 
 ### PutItemCommand
 
@@ -804,11 +866,6 @@ const { Attributes } = await pokemonEntity
   .send();
 ```
 
-<aside style="font-size: medium;">
-❗️*The `"UPDATED_OLD"` and `"UPDATED_NEW"` return values options are not fully supported yet so I do not recommend using them for now*
-
-</aside>
-
 ### GetItemCommand
 
 The `attributes` option behaves the same as in previous versions, but benefits from improved typing as well:
@@ -830,7 +887,7 @@ const { Item } = await pokemonEntity
 
 ### DeleteItemCommand
 
-The `DeleteItem` command is pretty much a mix between the two previous ones, options wise:
+The `DeleteItem` command is pretty much a mix between the `PutItem` and `GetItem` commands ones, options wise:
 
 ```tsx
 import { DeleteItemCommand } from 'dynamodb-toolbox';
@@ -851,6 +908,242 @@ const { Attributes } = await pokemonEntity
     },
   })
   .send();
+```
+
+### UpdateItemCommand
+
+The `UpdateCommand` is the richest of all DynamoDB commands. Its options are similar to the `PutItemCommand` options:
+
+```tsx
+import { UpdateItemCommand } from 'dynamodb-toolbox';
+
+const { Item } = await pokemonEntity
+  .build(UpdateItemCommand)
+  .item(pokemonItem)
+  .options({
+    capacity: 'TOTAL',
+    metrics: 'SIZE',
+    // 👇 Will type the response `Attributes`
+    returnValues: 'ALL_NEW',
+    condition: {
+      or: [
+        { attr: 'level', lte: 99 },
+        ...
+      ],
+    },
+  })
+  .send();
+```
+
+However, its `item` method offers many more possibilities 🙌 Let's explore them:
+
+#### Removing an attribute
+
+Any optional attribute can be removed with the `$remove` util:
+
+```tsx
+import { $remove } from 'dynamodb-toolbox';
+
+const pokemonSchema = schema({
+  ...
+  isLegendary: boolean().optional(),
+});
+
+pokemonEntity.build(UpdateItemCommand).item({
+  ...
+  isLegendary: $remove(),
+});
+```
+
+#### Referencing saved values
+
+TODO
+
+You can reference a saved attribute value by using the `$get` util:
+
+```tsx
+import { $get } from 'dynamodb-toolbox';
+
+pokemonEntity.build(UpdateItemCommand).item({
+  ...
+  // 👇 Resolved by DynamoDB at write time
+  previousLevel: $get('level'),
+});
+```
+
+Self-references are possible. You can also provide a fallback value as 2nd argument in case the specified attribute path misses from the item:
+
+```tsx
+pokemonEntity.build(UpdateItemCommand).item({
+  ...
+  previousLevel: $get('level', 1),
+  // 👇 fallback can also be a reference!
+  chainedRefs: $get(
+    'firstRef',
+    $get('secondRef', 'You can go event deeper: Sky is the limit!'),
+  ),
+});
+```
+
+Note that the attribute path is type-checked, but wether its attribute value extends the updated attribute value is **not** for the moment, so be extra-careful:
+
+```tsx
+const pokemonSchema = schema({
+  ...
+  name: string(),
+  level: number(),
+});
+
+pokemonEntity.build(UpdateItemCommand).item({
+  // ❌ Will be caught
+  name: $get('nonExistingAttribute'),
+  // 🙈 Will NOT be caught
+  level: $get('name'),
+});
+```
+
+#### Non-recursive attributes
+
+In the case of non-recursive attributes, e.g. primitives and `sets`, updates will completely override their previous values:
+
+```tsx
+const pokemonSchema = schema({
+  ...
+  isLegendary: boolean(),
+  level: number(),
+  name: string(),
+  binEncoded: binary(),
+  skills: set(string()),
+});
+
+pokemonEntity.build(UpdateItemCommand)
+  .item({
+    ...
+    // 👇 Set fields to desired values
+    isLegendary: true,
+    nextLevel: 42,
+    name: 'Pikachu',
+    binEncoded: Buffer.from(...),
+    skills: new Set(['thunder'])
+  })
+```
+
+`number` attributes benefit from additional `$sum`, `$subtract` and `$add` operations, which can use references:
+
+```tsx
+import { $add, $subtract, $get } from 'dynamodb-toolbox';
+
+await pokemonEntity.build(UpdateItemCommand)
+  .item({
+    ...
+    health: $subtract($get('health'), 20),
+    level: $sum($get('level', 0), 1),
+    // 👇 Similar to
+    level: $add(1),
+  })
+  .send();
+```
+
+To add or remove specific values from a set, you can use the `$add` and `$delete` utils:
+
+```tsx
+pokemonEntity.build(UpdateItemCommand)
+  .item({
+    ...
+    skills: $add('thunder', 'dragon-tail'),
+    types: $delete('flight'),
+  })
+```
+
+#### Recursive attributes
+
+In the case of recursive attributes, e.g. `lists`, `maps` and `records`, updates are **partial by default**. You can use the `$set` to specify a complete override:
+
+```tsx
+const pokemonSchema = schema({
+  ...
+  types: list(string()),
+  skills: list(string()),
+  some: map({
+    nested: map({
+      field: string(),
+      otherField: number(),
+    }),
+  }),
+  bestSkillByType: record(string(), string()),
+});
+
+// 👇 Partial overrides
+pokemonEntity.build(UpdateItemCommand).item({
+  ...
+  // 👇 Indexes 0 and 2 will be updated
+  skills: ['thunder', undefined, $remove()],
+  // 👇 Similar to
+  skills: {
+    0: 'thunder',
+    2: $remove(),
+  },
+  some: {
+    nested: {
+      field: 'foo',
+    },
+  },
+  bestSkillByType: {
+    electric: 'thunder',
+    flight: $remove(),
+  },
+});
+
+import { $set } from 'dynamodb-toolbox';
+
+// 👇 Complete overrides
+pokemonEntity.build(UpdateItemCommand).item({
+  ...
+  skills: $set(['thunder']),
+  some: $set({
+    nested: {
+      field: 'foo',
+      otherField: 42,
+    },
+  }),
+  bestSkillByType: $set({
+    electric: 'thunder',
+  }),
+});
+```
+
+`lists` attributes benefit from additional `$append` and `$prepend` operations, which can use references:
+
+```tsx
+pokemonEntity.build(UpdateItemCommand).item({
+  ...
+  skills: $append(['thunder', 'dragon-tail']),
+  levelHistory: $append($get('level')),
+  types: $prepend(['flight']),
+});
+```
+
+#### Any and anyOf attributes
+
+The `any` attribute supports all the syntaxes specified above. `anyOf` attributes updates are not supported yet.
+
+## Mocking entities in tests
+
+As much as I appreciate this syntax, it makes mocking hard in unit tests. I'm already working on a `mockEntity` helper, inspired by the awesome [`aws-sdk-client-mock`](https://github.com/m-radzikowski/aws-sdk-client-mock). This will probably make another article soon.
+
+For this reason, the `v1` exposes a `mockEntity` util.
+
+You can mock the . Note that you'll
+
+```tsx
+// TODO
+// 🙌 Type-safe!
+```
+
+Later, you can make assertions by using the:
+
+```tsx
+// TODO
 ```
 
 ## Utility helpers and types

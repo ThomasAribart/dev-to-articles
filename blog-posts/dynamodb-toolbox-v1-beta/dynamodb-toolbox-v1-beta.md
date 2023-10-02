@@ -602,8 +602,8 @@ const pokemonSchema = schema({
   ...
   captureState: anyOf([
     map({
-      status: string().const('catched'),
-      // 👇 captureState.trainerId exists if status is "catched"...
+      status: string().const('caught'),
+      // 👇 captureState.trainerId exists if status is "caught"...
       trainerId: string(),
     }),
     // ...but not otherwise! 🙌
@@ -614,7 +614,7 @@ const pokemonSchema = schema({
 type CaptureState = FormattedItem<typeof pokemonEntity>['captureState'];
 // 🙌 Equivalent to:
 // | { status: "wild" }
-// | { status: "catched", trainerId: string }
+// | { status: "caught", trainerId: string }
 ```
 
 As in sets, lists and maps, options can be povided as a 2nd argument.
