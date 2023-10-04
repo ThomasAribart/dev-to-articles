@@ -916,7 +916,7 @@ const attributes: AnyAttributePath<typeof pokemonEntity>[] = [
   'levelHistory.currentLevel',
 ];
 
-const parsedCondition = parseProjection(pokemonEntity, attributes);
+const parsedProjection = parseProjection(pokemonEntity, attributes);
 // => {
 //   ProjectionExpression: '#1, #2.#3',
 //   ExpressionAttributeNames: {
