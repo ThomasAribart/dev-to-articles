@@ -1,8 +1,8 @@
 ---
 published: false
-title: [UPDATED] The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!
+title: '[UPDATED] The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!'
 cover_image: https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/dynamodb-toolbox-v1-beta/dynamodb-toolbox-v1-beta.png
-description: [UPDATED] The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!
+description: '[UPDATED] The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!'
 tags: Typescript, DynamoDB, AWS, Serverless
 series:
 canonical_url:
