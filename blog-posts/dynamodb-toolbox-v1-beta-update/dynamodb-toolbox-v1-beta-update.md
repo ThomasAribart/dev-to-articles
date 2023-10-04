@@ -1,12 +1,22 @@
 ---
 published: false
-title: The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know! [UPDATED]
+title: [UPDATED] The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!
 cover_image: https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/dynamodb-toolbox-v1-beta/dynamodb-toolbox-v1-beta.png
-description: The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know! [UPDATED]
+description: [UPDATED] The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!
 tags: Typescript, DynamoDB, AWS, Serverless
 series:
 canonical_url:
 ---
+
+<aside style="font-size: medium;">
+
+☝️ _NOTE: This article is about the <code>beta.1</code> release._
+
+👉 _If you need documentation for the <code>beta.0</code> release, you may be looking for the [previous version of this article](https://dev.to/slsbytheodo/the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-22op)._
+
+👉 _If you want to migrate from the <code>beta.0</code> to the <code>beta.1</code>, there is a [dedicated article](TODO) summarizing the changes._
+
+</aside>
 
 At [Theodo](https://dev.to/slsbytheodo), we are big fans of Jeremy Daly’s [DynamoDB-Toolbox](https://github.com/jeremydaly/dynamodb-toolbox). We started using it as early as 2019 and grew fond of it... but were also well aware of its flaws 😅
 
@@ -55,11 +65,6 @@ Let's dive in!
   - [`GetItemCommand`](#getitemcommand)
   - [`DeleteItemCommand`](#deleteitemcommand)
   - [`UpdateItemCommand`](#updateitemcommand)
-    - [Removing an attribute](#removing-an-attribute)
-    - [Referencing saved values](#referencing-saved-values)
-    - [Non-recursive attributes](#non-recursive-attributes)
-    - [Recursive attributes](#recursive-attributes)
-    - [`any` and `anyOf` attributes](#any-and-anyof-attributes)
 - [Mocking entities in tests](#mocking-entities-in-tests)
 - [Utility helpers and types](#utility-helpers-and-types)
   - [`formatSavedItem`](#formatsaveditem)
@@ -80,12 +85,6 @@ yarn add dynamodb-toolbox@1.0.0-beta.1
 
 ## ...and so on
 ```
-
-<aside style="font-size: medium;">
-
-☝️ _If you installed the <code>beta.0</code> version, you may need my [previous article](https://dev.to/slsbytheodo/the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-22op) instead_
-
-</aside>
 
 The `v1` is built on top the `v3` of the AWS SDK. It has `@aws-sdk/client-dynamodb` and `@aws-sdk/lib-dynamodb` as peer dependencies so you’ll have to install them as well:
 
@@ -168,8 +167,6 @@ const myEntity = new EntityV2({
 });
 ```
 
-See [Designing Entity schemas](#designing-entity-schemas) for more docs.
-
 ### Timestamps
 
 The internal timestamp attributes are also there and behave similarly as in the [previous versions](https://www.dynamodbtoolbox.com/docs/entity#specifying-entity-definitions). You can set the `timestamps` to `false` to disable them (default value is `true`), or fine-tune the `created` and `modified` attributes names:
@@ -211,7 +208,7 @@ const myEntity = new EntityV2({
 
 ### Matching the Table schema
 
-An important change from previous versions is that the `EntityV2` key attributes are validated against the `TableV2` schema, both through types and at runtime. There are two ways to match the table schema:
+An important change from previous versions is that the `EntityV2` key attributes are validated against the `TableV2` schema, both through types and at run-time. There are two ways to match the table schema:
 
 - The simplest one is to have an entity schema that **already matches the table schema** (see ["Designing Entity schemas"](#designing-entity-schemas)). The Entity is then considered valid and no other argument is required:
 
@@ -319,7 +316,7 @@ const pokemonName = attr.string();
 
 Prior to being wrapped in a `schema` declaration, attributes are called **warm:** They are **not validated** (at run-time) and can be used to build other schemas. By inspecting their types, you will see that they are prefixed with `$`. Once **frozen**, validation is applied and building methods are stripped:
 
-![Warm vs frozen schemas](./warm-vs-frozen-schemas.gif)
+![Warm vs frozen schemas](./warm-vs-frozen-schema.gif)
 
 The main takeaway is that **warm schemas can be composed** while **frozen schemas cannot**:
 
@@ -355,7 +352,7 @@ All attributes share the following options:
 - `required` _(string?="atLeastOnce")_ Tag a root attribute or Map sub-attribute as **required**. Possible values are:
   - `"atLeastOnce"` Required in `PutItem` commands
   - `"never"`: Optional in all commands
-  - `"always"`: Required in `PutItem`, `GetItem`, `UpdateItem` and `DeleteItem` commands
+  - `"always"`: Required in all commands
 
 ```tsx
 // Equivalent
@@ -388,7 +385,7 @@ const pokemonName = string({ hidden: true });
 // Note: The method will also modify the `required` property to "always"
 // (it is often the case in practice, you can still use `.optional()` if needed)
 const pokemonName = string().key();
-const pokemonName = string({ key: true });
+const pokemonName = string({ key: true, required: 'always' });
 ```
 
 - `savedAs` _(string)_ Previously known as `map`. Rename a root or Map sub-attribute before sending commands:
@@ -406,7 +403,7 @@ Here’s the exhaustive list of available attribute types:
 
 #### Any
 
-Define an attribute of any value. No validation will be applied at runtime, and its type will be resolved as `unknown`:
+Define an attribute of any value. No validation will be applied at run-time, and its type will be resolved as `unknown`:
 
 ```tsx
 import { any } from 'dynamodb-toolbox';
@@ -480,25 +477,50 @@ type FormattedPokemon = FormattedItem<typeof pokemonEntity>;
 // }
 ```
 
-You can provide default values through the `defaults` option or the `keyDefault`, `putDefault` and `updateDefault` methods. A simpler `default` method is also exposed. It acts similarly as `putDefault`, except if the attribute has been tagged as a `key` attribute, in which case it will act as `keyDefault`:
+Similarly to `any` attributes, you can provide default values through the `defaults` option or the `default` methods:
 
 ```tsx
 // 🙌 Correctly typed!
-const level = number().default(42);
-const date = string().default(() => new Date().toISOString());
-
-const level = number({ default: 42 });
-const date = string({
-  default: () => new Date().toISOString(),
+const creationDate = string().default(() => new Date().toISOString());
+// 👇 Similar to
+const creationDate = string().putDefault(() => new Date().toISOString());
+// 👇 ...or
+const creationDate = string({
+  defaults: {
+    key: undefined,
+    put: () => new Date().toISOString(),
+    update: undefined,
+  },
 });
 
-import { $add } from 'dynamodb-toolbox';
+// 👇 Additionally fill 'creationDate' on updates if needed
+import { $get } from 'dynamodb-toolbox';
 
-const numberOfOperations = number()
-  .putDefault(1)
-  // 👇 Special update operations are also available
-  // (only as a function return for now though, to escape schema validation)
-  .updateDefault(() => $add(1));
+const creationDate = string()
+  .putDefault(() => new Date().toISOString())
+  // (See UpdateItemCommand section for $get description)
+  .updateDefault(() => $get('creationDate', new Date().toISOString()));
+// 👇 Similar to
+const creationDate = string({
+  defaults: {
+    key: undefined,
+    put: () => new Date().toISOString(),
+    update: () => $get('creationDate', new Date().toISOString()),
+  },
+});
+
+const id = number().key().default(1);
+// 👇 Similar to
+const id = number().key().keyDefault(1);
+// 👇 ...or
+const id = number({
+  defaults: {
+    key: 1,
+    // put & update defaults are not useful in `key` attributes
+    put: undefined,
+    update: undefined,
+  },
+});
 ```
 
 Primitive types have an additional `enum` option. For instance, you could provide a finite list of pokemon types:
@@ -594,7 +616,7 @@ As in sets and lists, options can be povided as a 2nd argument.
 
 #### Record
 
-A new attribute type that translates to `Partial<Record<KeyType, ValueType>>` in TypeScript. Records differ from maps as they can accept an infinite range of keys:
+A new attribute type that translates to `Partial<Record<KeyType, ValueType>>` in TypeScript. Records differ from maps as they can accept an infinite range of keys and are always partial:
 
 ```tsx
 import { record } from 'dynamodb-toolbox';
@@ -761,7 +783,7 @@ const pokemonSchema = schema({
 const pokemonEntity = new EntityV2({
   ...
   schema: pokemonSchema,
-  computeDefaults: {
+  putDefaults: {
     levelHistory: {
       // Defaulted value of Map attribute
       _map: item => ({
@@ -791,7 +813,7 @@ As mentioned in the intro, I searched for a syntax that favored tree-shaking. He
 
 ```tsx
 // v0.x Not tree-shakable
-const response = await pokemonEntity.putItem(pokemonItem, options);
+const response = await pokemonEntity.put(pokemonItem, options);
 
 // v1 Tree-shakable 🙌
 import { PutItemCommand } from 'dynamodb-toolbox';
@@ -957,8 +979,6 @@ pokemonEntity.build(UpdateItemCommand).item({
 
 #### Referencing saved values
 
-TODO
-
 You can reference a saved attribute value by using the `$get` util:
 
 ```tsx
@@ -971,7 +991,7 @@ pokemonEntity.build(UpdateItemCommand).item({
 });
 ```
 
-Self-references are possible. You can also provide a fallback value as 2nd argument in case the specified attribute path misses from the item:
+Self-references are possible. You can also provide a fallback value as 2nd argument in case the specified attribute path misses from the saved item:
 
 ```tsx
 pokemonEntity.build(UpdateItemCommand).item({
@@ -980,7 +1000,7 @@ pokemonEntity.build(UpdateItemCommand).item({
   // 👇 fallback can also be a reference!
   chainedRefs: $get(
     'firstRef',
-    $get('secondRef', 'You can go event deeper: Sky is the limit!'),
+    $get('secondRef', 'Sky is the limit!'),
   ),
 });
 ```
@@ -996,7 +1016,7 @@ const pokemonSchema = schema({
 
 pokemonEntity.build(UpdateItemCommand).item({
   // ❌ Will be caught
-  name: $get('nonExistingAttribute'),
+  name: $get('non.existing[0].attribute'),
   // 🙈 Will NOT be caught
   level: $get('name'),
 });
@@ -1129,21 +1149,53 @@ The `any` attribute supports all the syntaxes specified above. `anyOf` attribute
 
 ## Mocking entities in tests
 
-As much as I appreciate this syntax, it makes mocking hard in unit tests. I'm already working on a `mockEntity` helper, inspired by the awesome [`aws-sdk-client-mock`](https://github.com/m-radzikowski/aws-sdk-client-mock). This will probably make another article soon.
-
-For this reason, the `v1` exposes a `mockEntity` util.
-
-You can mock the . Note that you'll
+As much as I appreciate this chained syntax, it makes mocking hard in unit tests. For this reason, the `v1` exposes a `mockEntity` util to help you mock commands:
 
 ```tsx
-// TODO
-// 🙌 Type-safe!
+import { mockEntity } from 'dynamodb-toolbox';
+
+const mockedPokemonEntity = mockEntity(pokemonEntity);
+
+mockedPokemonEntity.on(GetItemCommand).resolve({
+  // 🙌 Type-safe!
+  Item: {
+    pokemonId: 'pikachu1',
+    name: 'Pikachu',
+    level: 42,
+    ...
+  },
+});
+
+// 👇 For more fine-grained control
+mockedPokemonEntity
+  .on(GetItemCommand)
+  .mockImplementation((key, options) => ({
+    // 🙌 Still type-safe!
+    Item: {
+      pokemonId: 'pikachu1',
+      ...
+    },
+  }));
+
+//👇 To simulate errors
+mockedPokemonEntity.on(GetItemCommand).reject('Something bad happened');
 ```
 
-Later, you can make assertions by using the:
+You can then make assertions on received commands:
 
 ```tsx
-// TODO
+await pokemonEntity
+  .build(GetItemCommand)
+  .key({ pokemonId: 'pikachu1' })
+  .options({ consistent: true })
+  .send();
+
+mockedPokemonEntity.received(GetItemCommand).count();
+// => 1
+mockedPokemonEntity.received(GetItemCommand).args(0);
+// => [{ pokemonId: 'pikachu1' }, { consistent: true }]
+mockedEntity.received(GetItemCommand).allArgs();
+// => [[{ pokemonId: 'pikachu1' }, { consistent: true }], ...anyOtherCall]
 ```
 
 ## Utility helpers and types
@@ -1191,9 +1243,9 @@ const condition: Condition<typeof pokemonEntity> = {
 
 const parsedCondition = parseCondition(pokemonEntity, condition);
 // => {
-//   ConditionExpression: "#1 <= :1",
-//   ExpressionAttributeNames: { "#1": "level" },
-//   ExpressionAttributeValues: { ":1": 42 },
+//   ConditionExpression: "#c1 <= :c1",
+//   ExpressionAttributeNames: { "#c1": "level" },
+//   ExpressionAttributeValues: { ":c1": 42 },
 // }
 ```
 
@@ -1209,13 +1261,13 @@ const attributes: AnyAttributePath<typeof pokemonEntity>[] = [
   'levelHistory.currentLevel',
 ];
 
-const parsedCondition = parseProjection(pokemonEntity, attributes);
+const parsedProjection = parseProjection(pokemonEntity, attributes);
 // => {
-//   ProjectionExpression: '#1, #2.#3',
+//   ProjectionExpression: '#p1, #p2.#p3',
 //   ExpressionAttributeNames: {
-//     '#1': 'pokemonType',
-//     '#2': 'levelHistory',
-//     '#3': 'currentLevel',
+//     '#p1': 'pokemonType',
+//     '#p2': 'levelHistory',
+//     '#p3': 'currentLevel',
 //   },
 // }
 ```
