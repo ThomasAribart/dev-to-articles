@@ -8,15 +8,11 @@ series:
 canonical_url:
 ---
 
-<aside style="font-size: medium;">
-
-☝️ _NOTE: This article is about the <code>beta.1</code> release._
-
-👉 _If you need documentation for the <code>beta.0</code> release, you may be looking for the [previous version of this article](https://dev.to/slsbytheodo/the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-22op)._
-
-👉 _If you want to migrate from the <code>beta.0</code> to the <code>beta.1</code>, there is a [dedicated article](TODO) summarizing the changes._
-
-</aside>
+> ☝️ _NOTE: This article is about the <code>beta.1</code> release._
+>
+> 👉 _If you need documentation for the <code>beta.0</code> release, you may be looking for the [previous version of this article](https://dev.to/slsbytheodo/the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-22op)._
+>
+> 👉 _If you want to migrate from the <code>beta.0</code> to the <code>beta.1</code>, there is a [dedicated article](TODO) summarizing the changes._
 
 At [Theodo](https://dev.to/slsbytheodo), we are big fans of Jeremy Daly’s [DynamoDB-Toolbox](https://github.com/jeremydaly/dynamodb-toolbox). We started using it as early as 2019 and grew fond of it... but were also well aware of its flaws 😅
 
@@ -125,11 +121,7 @@ const myTable = new TableV2({
 });
 ```
 
-<aside style="font-size: medium;">
-
-☝️ _The v1 does not support indexes yet as queries are not yet available._
-
-</aside>
+> ☝️ _The v1 does not support indexes yet as queries are not yet available._
 
 The table name can be provided with a getter, which can be useful in some contexts where you may want to use the class without actually running any command (e.g. tests or deployments):
 
@@ -366,11 +358,7 @@ const pokemonName = string({ required: 'never' });
 
 A very important breaking change from previous versions is that **root attributes and Map sub-attributes are now required by default**. This was made so **composition and validation work better together**.
 
-<aside style="font-size: medium;">
-
-💡 _Outside of root attributes and Map sub-attributes, such as in a list of strings, it doesn’t make sense for sub-schemas to be optional. So, should I force users to write `list(string().required())` every time OR make string validation and type inference aware of their context (ignore `required` in lists but not in maps)? It felt more elegant to enforce `string()` as required by default and prevent schemas such as `list(string().optional())`._
-
-</aside>
+> 💡 _Outside of root attributes and Map sub-attributes, such as in a list of strings, it doesn’t make sense for sub-schemas to be optional. So, should I force users to write `list(string().required())` every time OR make string validation and type inference aware of their context (ignore `required` in lists but not in maps)? It felt more elegant to enforce `string()` as required by default and prevent schemas such as `list(string().optional())`._
 
 - `hidden` _(boolean?=true)_ Skip attribute when formatting the returned item of a command:
 
@@ -532,11 +520,7 @@ const pokemonTypeAttribute = string().enum('fire', 'grass', 'water');
 const pokemonPartitionKey = string().const('POKEMON');
 ```
 
-<aside style="font-size: medium;">
-
-💡 _For type inference reasons, the `enum` option is only available as a method, not as an object option_
-
-</aside>
+> 💡 _For type inference reasons, the `enum` option is only available as a method, not as an object option_
 
 #### Set
 
@@ -724,11 +708,7 @@ const pokemonSchema = schema({
 });
 ```
 
-<aside style="font-size: medium;">
-
-💡 _`ComputedDefault` is a JavaScript [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) (TLDR: A sort of unique and custom `null`), so it cannot possibly conflict with an actual desired default value._
-
-</aside>
+> 💡 _`ComputedDefault` is a JavaScript [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) (TLDR: A sort of unique and custom `null`), so it cannot possibly conflict with an actual desired default value._
 
 - Then, declare a way to compute this attribute **at the entity level**, through the `putDefaults` property:
 
@@ -803,11 +783,7 @@ const pokemonEntity = new EntityV2({
 
 Now that we know how to design entities, let’s take a look at how we can leverage them to craft commands 👍
 
-<aside>
-
-💡 _The beta only supports the `PutItem`, `GetItem`, `UpdateItem` and `DeleteItem` commands. If you need to run `Query` or `Scan` commands, my advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem)._
-
-</aside>
+> 💡 _The beta only supports the `PutItem`, `GetItem`, `UpdateItem` and `DeleteItem` commands. If you need to run `Query` or `Scan` commands, my advice is to run native SDK commands and format their output with the [`formatSavedItem` util](#formatsaveditem)._
 
 As mentioned in the intro, I searched for a syntax that favored tree-shaking. Here's an example of it, with the `PutItem` command:
 
