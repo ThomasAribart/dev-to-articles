@@ -1,5 +1,5 @@
 ---
-published: false
+published: true
 title: 'New DynamoDB-Toolbox v1 beta: Features and breaking changes'
 cover_image: https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/dynamodb-toolbox-v1-beta/dynamodb-toolbox-v1-beta.png
 description: 'New DynamoDB-Toolbox v1 beta: Features and breaking changes'
@@ -24,7 +24,7 @@ Simply named `beta.1`, the aim of this article is to succinctly describe its new
 
 The main update from this release is that the `UpdateItemCommand` is now available 🥳
 
-It's clearly one of of the hardest feature I had to develop in my entire life (thank you, [DynamoDB reference](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateItem.html) for being very unclear on soooooo many edge cases 😳). I'm glad it is now shipped!
+It's clearly one of of the hardest feature I had to develop in my life (thank you, [DynamoDB reference](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateItem.html) for being very unclear on soooooo many edge cases 😳). I'm glad it is now shipped!
 
 See the [updated documentation article](TODO) for an exhaustive documentation, but here's a sneak peek:
 
@@ -76,12 +76,11 @@ await pokemonEntity
   .key({ pokemonId: 'pikachu1' })
   .options({ consistent: true })
   .send();
+// => Will return mocked values!
 
 mockedPokemonEntity.received(GetItemCommand).args(0);
 // => [{ pokemonId: 'pikachu1' }, { consistent: true }]
 ```
-
-See the [updated documentation article](TODO) for an exhaustive documentation 🙌
 
 ### Providing getters for table names
 
@@ -134,8 +133,6 @@ const keyAttribute = string({
 // ...or
 const keyAttribute = string().key().keyDefault('my-awesome-partition-key');
 ```
-
-See the [updated documentation article](TODO) for an exhaustive documentation 🙌
 
 Note that the `default` method is still there. It acts similarly as `putDefault`, except if the attribute has been tagged as a `key` attribute, in which case it acts as `keyDefault`:
 
@@ -198,8 +195,6 @@ const pokemonEntity = new EntityV2({
   },
 });
 ```
-
-See the [updated documentation article](TODO) for an exhaustive documentation.
 
 ## Conclusion
 
