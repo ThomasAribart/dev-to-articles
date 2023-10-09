@@ -1,5 +1,5 @@
 ---
-published: false
+published: true
 title: '[UPDATED] The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!'
 cover_image: https://raw.githubusercontent.com/ThomasAribart/dev-to-articles/master/blog-posts/dynamodb-toolbox-v1-beta/dynamodb-toolbox-v1-beta.png
 description: '[UPDATED] The DynamoDB-Toolbox v1 beta is here 🙌 All you need to know!'
@@ -1165,6 +1165,7 @@ await pokemonEntity
   .key({ pokemonId: 'pikachu1' })
   .options({ consistent: true })
   .send();
+// => Will return mocked values!
 
 mockedPokemonEntity.received(GetItemCommand).count();
 // => 1
