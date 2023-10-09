@@ -12,7 +12,7 @@ canonical_url:
 >
 > 👉 _If you need documentation for the <code>beta.0</code> release, you may be looking for the [previous version of this article](https://dev.to/slsbytheodo/the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-22op)._
 >
-> 👉 _If you want to migrate from the <code>beta.0</code> to the <code>beta.1</code>, there is a [dedicated article](TODO) summarizing the changes._
+> 👉 _If you want to migrate from the <code>beta.0</code> to the <code>beta.1</code>, there is a [dedicated article](https://dev.to/thomasaribart/new-dynamodb-toolbox-v1-beta-features-and-breaking-changes-1ji5) summarizing the changes._
 
 At [Theodo](https://dev.to/slsbytheodo), we are big fans of Jeremy Daly’s [DynamoDB-Toolbox](https://github.com/jeremydaly/dynamodb-toolbox). We started using it as early as 2019 and grew fond of it... but were also well aware of its flaws 😅
 
