@@ -10,9 +10,9 @@ canonical_url:
 
 > ☝️ _NOTE: This article details how to migrate from the <code>beta.0</code> to the <code>beta.1</code> of the new DynamoDB-Toolbox major._
 >
-> 👉 _If you need documentation for the <code>beta.1</code> release, you may be looking for [this article](TODO)._
+> 👉 _If you need the full documentation of the <code>beta.1</code> release, you may be looking for [this article](https://dev.to/thomasaribart/updated-the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-ep2)._
 >
-> 👉 _If you need documentation for the <code>beta.0</code> release, you may be looking for its [previous version](https://dev.to/slsbytheodo/the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-22op)._
+> 👉 _If you need the full documentation of the <code>beta.0</code> release, you may be looking for its [previous version](https://dev.to/slsbytheodo/the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-22op)._
 
 A **new v1 beta of DynamoDB-Toolbox is out** 🙌
 
@@ -26,7 +26,7 @@ The main update from this release is that the `UpdateItemCommand` is now availab
 
 It's clearly one of of the hardest feature I had to develop in my life (thank you, [DynamoDB reference](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateItem.html) for being very unclear on soooooo many edge cases 😳). I'm glad it is now shipped!
 
-See the [updated documentation article](TODO) for an exhaustive documentation, but here's a sneak peek:
+See the [updated documentation article](https://dev.to/thomasaribart/updated-the-dynamodb-toolbox-v1-beta-is-here-all-you-need-to-know-ep2) for an exhaustive documentation, but here's a sneak peek:
 
 ```tsx
 import { UpdateItemCommand, $add, $get } from 'dynamodb-toolbox';
