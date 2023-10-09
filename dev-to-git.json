@@ -14,5 +14,9 @@
   {
     "id": 1615836,
     "relativePathToArticle": "./blog-posts/dynamodb-toolbox-v1-beta-update/dynamodb-toolbox-v1-beta-update.md"
+  },
+  {
+    "id": 1628742,
+    "relativePathToArticle": "./blog-posts/dynamodb-toolbox-v1-beta-migration/dynamodb-toolbox-v1-beta-migration.md"
   }
 ]
